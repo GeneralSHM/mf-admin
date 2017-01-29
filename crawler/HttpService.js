@@ -30,6 +30,11 @@ let requestHandler = (res, resolve, reject) => {
 class HttpService {
     get(url) {
         return new Promise((resolve, reject) => {
+            if (!url.includes('musiciansfriend')) {
+                reject('Not MF url!');
+                return false;
+            }
+
             http.get(url, (res) => {
                 requestHandler(res, resolve, reject);
             }).on('error', (e) => {

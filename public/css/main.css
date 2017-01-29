@@ -1,0 +1,24 @@
+.view {
+    padding: 0 30px;
+}
+
+.brand-logo i.material-icons {
+    margin-left: 10px;
+    font-size: 4rem;
+}
+
+.search-field .close-icon {
+    height: 46px;
+    line-height: 46px;
+}
+
+.img-col {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.item-availability {
+    margin: 0;
+    font-size: 12px;
+    text-transform: uppercase;
+}
