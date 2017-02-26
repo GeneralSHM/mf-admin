@@ -20,6 +20,7 @@ class HomeView {
                 <tr>
                     <td class="img-col"><img class="circle responsive-img" src="${item.thumbnail}" alt="${item.mf_name}"></td>
                     <td>${item.mf_name}</td>
+                    <td>${item.price}$</td>
                     <td>${item.amazon_name == '' ? 'Not set' : item.amazon_name}</td>
                     <td>${item.amazon_price}</td>
                     <td class="center-align">
@@ -40,6 +41,7 @@ class HomeView {
                     <tr>
                         <th data-field="thumbnail">Thumbnail</th>
                         <th data-field="id">MusicFriend name</th>
+                        <th data-field="mf-price">MusicFriend price</th>
                         <th data-field="name">Amazon Name</th>
                         <th data-field="price">Amazon Price</th>
                         <th class="center-align" data-field="availability">Availability</th>

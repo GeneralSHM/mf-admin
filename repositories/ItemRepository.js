@@ -1,3 +1,5 @@
+'use strict';
+
 class ItemRepository {
     constructor(connection) {
         this.connection = connection;
@@ -67,15 +69,33 @@ class ItemRepository {
         });
     }
 
-    getItemPageCount(itemsPerPage, searchName) {
-        let queryParam = typeof searchName != 'undefined' ? searchName : '';
+    getItemPageCount(itemsPerPage, query) {
+        try {
+            var escapedQuery = query.replace(/[+\-><\(\)~*\"@]+/g, ' ').trim();
+
+        } catch (e) {
+            escapedQuery = '';
+        }
+
+        let shouldSearch = typeof query == 'string' && escapedQuery !== '';
+
+        if (typeof query == 'string') {
+           var searchQuery = '*' + escapedQuery.split(' ').join('* *') + '*';
+        }
+
+        let SQLQuery = shouldSearch ? `
+                 SELECT COUNT(id)
+                 FROM items
+                 WHERE
+                     MATCH(mf_name,amazon_name) AGAINST(${this.connection.escape(searchQuery)} IN BOOLEAN MODE)
+                `
+            : `SELECT COUNT(id)
+                 FROM items
+                `;
 
         return new Promise((resolve, reject) => {
             this.connection.query(
-                `SELECT COUNT(id) FROM items
-                 WHERE
-                      CONCAT(mf_name, amazon_name) LIKE '%${queryParam}%'
-                `,
+                SQLQuery,
                 (err, count) => {
                     if (err) {
                         reject(err);
@@ -91,6 +111,7 @@ class ItemRepository {
         return new Promise((resolve, reject) => {
             this.connection.query(
                 `SELECT * FROM items
+                 LEFT JOIN (SELECT item_id, price, MAX(date) max_date FROM item_prices GROUP BY item_id) prices ON items.id = prices.item_id
                  ORDER BY id ASC
                  LIMIT ?, ?
                 `, [
@@ -125,23 +146,47 @@ class ItemRepository {
         });
     }
 
-    getByName(page, itemsPerPage, name) {
+    getByName(page, itemsPerPage, query) {
+        try {
+            var escapedQuery = query.replace(/[+\-><\(\)~*\"@]+/g, ' ').trim();
+
+        } catch (e) {
+            escapedQuery = '';
+        }
+
+        let shouldSearch = typeof query == 'string' && escapedQuery !== '';
+
+        if (shouldSearch) {
+            var searchQuery = '*' + escapedQuery.split(' ').join('* *') + '*';
+        }
+
+        let SQLQuery = shouldSearch ? `
+                 SELECT * FROM items
+                 LEFT JOIN (SELECT item_id, price, MAX(date) max_date FROM item_prices GROUP BY item_id) prices ON items.id = prices.item_id
+                 WHERE
+                     MATCH(mf_name,amazon_name) AGAINST(${this.connection.escape(searchQuery)} IN BOOLEAN MODE)
+                 ORDER BY id ASC
+                 LIMIT ?, ?
+                `
+            : `SELECT *
+                 FROM items
+                 LEFT JOIN (SELECT item_id, price, MAX(date) max_date FROM item_prices GROUP BY item_id) prices ON items.id = prices.item_id
+                 ORDER BY id ASC
+                 LIMIT ?, ?
+                `;
+
+
         return new Promise((resolve, reject) => {
             this.connection.query(
-                `SELECT *
-                 FROM items
-                 WHERE
-                     CONCAT(mf_name,amazon_name) LIKE '%${name}%'
-                 ORDER BY mf_name ASC
-                 LIMIT ?, ?
-                `,
+                SQLQuery,
                 [
                     page * itemsPerPage,
                     itemsPerPage
                 ],
                 (err, results) => {
                     if (err) {
-                        reject(err)
+                        console.error(err);
+                        reject(err);
                     } else {
                         resolve(results);
                     }

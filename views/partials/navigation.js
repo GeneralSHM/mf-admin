@@ -1,7 +1,7 @@
 let navigation = `
     <nav>
         <div class="nav-wrapper">
-            <a href="#" class="brand-logo"><i class="material-icons">queue_music</i> Music Items DB</a>
+            <a href="/" class="brand-logo"><i class="material-icons">queue_music</i> Music Items DB</a>
             <ul id="nav-mobile" class="right hide-on-med-and-down">
                 <li><a href="sass.html">Sass</a></li>
                 <li><a href="badges.html">Components</a></li>

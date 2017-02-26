@@ -1,15 +1,15 @@
 const cheerio = require('cheerio');
 
 const HttpService = require('./HttpService');
-const ItemRepository = require('./ItemRepository');
+const ItemRepository = require('../repositories/ItemRepository');
 const CSVLoader = require('./CSVLoader');
 
 const httpService = new HttpService();
 
 class Crawler {
-    constructor() {
+    constructor(connection) {
         this.lastItems = [];
-        this.itemRepository = new ItemRepository();
+        this.itemRepository = new ItemRepository(connection);
         this.csvLoader = new CSVLoader();
         this.counter = 1;
         this.matchCounter = 0;
