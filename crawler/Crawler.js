@@ -127,10 +127,6 @@ class Crawler {
         let DOMElements = itemVariations.length > 0 ? itemVariations : $('var.price');
 
         for (var i = 0; i < DOMElements.length; i++) {
-            if (itemName == 'Alaska Pik Finger Guitar Pick Extra Large' && i == 1) {
-                debugger;
-            }
-
             let parsedElement = this.parseItem($, DOMElements[i], url);
 
             if (typeof itemName != 'undefined' && (parsedElement.name.toLocaleLowerCase().includes(itemName.toLocaleLowerCase()) || itemName.toLocaleLowerCase().includes(parsedElement.name.toLocaleLowerCase()))) {
