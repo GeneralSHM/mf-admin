@@ -36,28 +36,51 @@ class ItemRepository {
         });
     }
 
-    savePrice(id, item) {
+    checkPrice(id, item) {
         return new Promise((resolve, reject) => {
             this.connection.query(
-                `INSERT INTO item_prices SET ?`,
-                [{
-                    item_id: id,
-                    price: item.price,
-                    date: new Date()
-                }], (err, results) => {
+                `SELECT item_id, price, MAX(date) date FROM item_prices 
+                 WHERE item_id = ?`,
+                [id],
+                (err, results) => {
                     if (err) {
                         reject(err);
+                    } else if (results[0].price != item.price) {
+                        resolve();
                     } else {
-                        resolve(results);
+                        reject();
                     }
-                });
+                }
+            )
+        });
+    }
+
+    savePrice(id, item) {
+        return new Promise((resolve, reject) => {
+            this.checkPrice(id, item).then(() => {
+                this.connection.query(
+                    `INSERT INTO item_prices SET ?`,
+                    [{
+                        item_id: id,
+                        price: item.price,
+                        date: new Date()
+                    }], (err, results) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(results);
+                        }
+                    });
+            }).catch((err) => {
+                resolve('Item price not new!');
+            })
         });
     }
 
     getAll() {
         return new Promise((resolve, reject) => {
             this.connection.query(
-                `SELECT * FROM items`,
+                `SELECT mf_name as MFName, url FROM items`,
                 (err, results) => {
                     if (err) {
                         reject(err);
@@ -138,7 +161,7 @@ class ItemRepository {
                 (err, results) => {
                     if (err) {
                         reject(err)
-                    } else {
+                } else {
                         resolve(results);
                     }
                 }

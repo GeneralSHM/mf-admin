@@ -24,6 +24,15 @@ app.get('/', function (req, res) {
 });
 
 app.post('/crawl', function (req, res) {
+    crawler.fetchFromDB().then(() => {
+        console.log('success');
+        res.send({});
+    }).catch((e) => {
+        res.send(e);
+    });
+});
+
+app.post('/crawl-item', function (req, res) {
     crawler.fetchFrom(req.body.url, req.body.itemName).then((response) => {
         console.log('success', response);
         res.send('Stana');
