@@ -1,5 +1,11 @@
+nav {
+    position: fixed;
+    z-index: 10;
+}
+
 .view {
     padding: 0 30px;
+    padding-top: 64px;
 }
 
 .brand-logo i.material-icons {
@@ -22,3 +28,22 @@
     font-size: 12px;
     text-transform: uppercase;
 }
+
+#loader-container {
+    position: fixed;
+    z-index: 100;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(2,2,2, 0.4);
+}
+
+.preloader-wrapper {
+    display: block;
+    top: 50%;
+    margin: 0 auto;
+    margin-top: -32px;
+}
+
+.hidden { display: none; }

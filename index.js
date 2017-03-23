@@ -3,6 +3,8 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 
+const MainConfig = require('./configs/main.config');
+
 const View = require('./views/view');
 const MySQL = require('./services/mysql');
 
@@ -25,7 +27,6 @@ app.get('/', function (req, res) {
 
 app.post('/crawl', function (req, res) {
     crawler.fetchFromDB().then(() => {
-        console.log('success');
         res.send({});
     }).catch((e) => {
         res.send(e);
@@ -33,16 +34,39 @@ app.post('/crawl', function (req, res) {
 });
 
 app.post('/crawl-item', function (req, res) {
-    crawler.fetchFrom(req.body.url, req.body.itemName).then((response) => {
-        console.log('success', response);
-        res.send('Stana');
-    }).catch((e) => {
-        res.send(e);
+   try {
+       crawler.fetchFrom(req.body.url, req.body.itemName).then((response) => {
+           console.log('Added/Updated: ', response);
+           res.status(200).send({
+               message: 'Item successfully added!'
+           });
+       }).catch((e) => {
+           res.status(400).send(JSON.stringify(e));
+       });
+   } catch (e) {
+       res.status(500).send(JSON.stringify(e));
+   }
+});
+
+app.listen(MainConfig.PORT, function () {
+    console.log(`Example app listening on port ${MainConfig.PORT}!`);
+});
+
+// crawler.scrapeCSV('./crawler/DEMO_1.csv').then(() => {
+//     console.log('CSV fully parsed');
+// }).catch((e) => {
+//     console.error(e);
+// });
+
+/*
+* Auto crawling
+* */
+setInterval(() => {
+    crawler.fetchFromDB().then(() => {
+        console.log(`Crawl finished at: ${Date.now()}`);
+
+    }).catch(() => {
+        console.error(`Crawl failed at: ${Date.now()}`);
     });
-});
 
-const PORT = 8080;
-
-app.listen(PORT, function () {
-    console.log(`Example app listening on port ${PORT}!`)
-});
+}, MainConfig.CRAWL_INTERVAL);

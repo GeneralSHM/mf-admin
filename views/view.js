@@ -3,6 +3,8 @@ let path = require('path');
 let navigation = require(path.join(__dirname, 'partials/navigation'));
 let head = require(path.join(__dirname, 'partials/head'));
 let scripts = require(path.join(__dirname, 'partials/scripts'));
+let modals = require(path.join(__dirname, 'partials/modals'));
+let loader = require(path.join(__dirname, 'partials/loader'));
 
 class View {
     constructor(dbConnection) {
@@ -34,7 +36,9 @@ class View {
                         <div class="view">
                             ${result}
                         </div>
+                        ${modals}
                         ${scripts}
+                        ${loader}
                     </body>
                     </html>
                 `);

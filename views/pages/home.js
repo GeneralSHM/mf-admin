@@ -4,11 +4,14 @@ const View = require('../view');
 class HomeView {
     constructor(connection, request) {
         this.itemRepository = new ItemRepository(connection);
-        this.itemsPerPage = 10;
         this.pageCount = null;
         this.currentPage = typeof request.query.page != 'undefined' && !isNaN(parseInt(request.query.page)) && parseInt(request.query.page) >= 1 ? parseInt(request.query.page) - 1 : 0;
         this.shouldSearch = typeof request.query.search != 'undefined';
         this.searchParam = request.query.search;
+
+        let queryListSize = parseInt(request.query.listSize);
+
+        this.itemsPerPage = typeof request.query.listSize != 'undefined' && !isNaN(queryListSize) && queryListSize >= 1 ? queryListSize : 50;
         this.query = request.query;
     }
 
@@ -21,6 +24,7 @@ class HomeView {
                     <td class="img-col"><img class="circle responsive-img" src="${item.thumbnail}" alt="${item.mf_name}"></td>
                     <td>${item.mf_name}</td>
                     <td>${item.price}$</td>
+                    <td class="${item.diff > 0 ? 'red darken-1' : item.diff < 0 ? 'green lighen-1' : ''}">${item.diff > 0 ? `+${item.diff}` : item.diff}$</td>
                     <td>${item.amazon_name == '' ? 'Not set' : item.amazon_name}</td>
                     <td>${item.amazon_price}</td>
                     <td class="center-align">
@@ -30,7 +34,7 @@ class HomeView {
                     </td>
                     <td><a href="${item.url}" target="_blank" class="waves-effect waves-light btn">Open MF</a></td>
                     <td>${(new Date(item.date_added)).toLocaleString()}</td>
-                    <td>${(new Date(item.last_crawl)).toLocaleString()}</td>
+                    <td>${(new Date(item.last_change)).toLocaleString()}</td>
                 </tr>
             `;
         }
@@ -42,12 +46,13 @@ class HomeView {
                         <th data-field="thumbnail">Thumbnail</th>
                         <th data-field="id">MusicFriend name</th>
                         <th data-field="mf-price">MusicFriend price</th>
+                        <th data-field="mf-price-delta">Price change</th>
                         <th data-field="name">Amazon Name</th>
                         <th data-field="price">Amazon Price</th>
                         <th class="center-align" data-field="availability">Availability</th>
                         <th data-field="link">Link</th>
                         <th data-field="date-added">Added on</th>
-                        <th data-field="date-scraped">Last scraped</th>
+                        <th data-field="date-scraped">Last change</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -79,6 +84,8 @@ class HomeView {
 
 
     getItemPage() {
+        console.log(this.itemsPerPage);
+
         return new Promise((resolve, reject) => {
             let method = this.shouldSearch ? 'getByName' : 'getItemPage';
 
@@ -104,6 +111,16 @@ class HomeView {
                             <label class="label-icon" for="search"><i class="material-icons">search</i></label>
                             <i class="material-icons close-icon">close</i>
                         </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-field col s2">
+                            <select id="list-size">
+                              <option value="50" ${this.itemsPerPage == 50 ? 'selected' : ''}>50</option>
+                              <option value="100" ${this.itemsPerPage == 100 ? 'selected' : ''}>100</option>
+                              <option value="200" ${this.itemsPerPage == 200 ? 'selected' : ''}>200</option>
+                            </select>
+                            <label>Items per page</label>
+     
                     </div>
                     ${table}
                 `;

@@ -61,8 +61,10 @@ class Crawler {
         for (let item of itemList) {
             itemPromises.push(new Promise((resolve, reject) => {
                 setTimeout(() => {
+                    item.url = Crawler.formatUrl(item.url);
+
                     this.fetchFrom(item.url, item.MFName).then(() => {
-                        // console.log(this.counter++ + ' Fetch from "' + item.url + '" complete!');
+                        console.log(this.counter++ + ' Fetch from "' + item.url + '" complete!');
                         resolve();
                     }).catch((e) => {
                         console.error('URL: ' + item.url);
@@ -93,11 +95,12 @@ class Crawler {
             httpService.get(url).then((html) => {
                 let lastItems = this.getPrices(html, url, itemName);
                 this.saveItems(lastItems).then(() => {
-                    resolve();
+                    resolve(itemName);
                 }).catch((error) => {
                     reject(error);
                 });
             }).catch((e) => {
+                console.error(e);
                 reject(e);
             });
         });
@@ -143,20 +146,30 @@ class Crawler {
     }
 
     parseItem($, item, url) {
-        item = JSON.parse($(item).text());
+        try {
+            item = JSON.parse($(item).text());
+        } catch (e) {
+            item = $(item).text();
+        }
+
         let parsedItem;
 
         if (typeof item != 'object') {
             parsedItem = {
                 name: this.replaceSpaces($('div[itemprop="name"]').text()).trim().replace(/\n+/g, ''),
                 availability: this.getAvailability($),
-                price: item
+                price: parseFloat(item.toString().replace(/,/g, ''))
             };
+
+            // if (parsedItem.name == 'Behringer Battery BAT1 Replacement Battery for EPA40') {
+            //     // parsedItem.availability = 'bahur-bombach';
+            //     parsedItem.price -= 0.1;
+            // }
         } else {
             parsedItem = {
                 name: this.replaceSpaces($('div[itemprop="name"]').text().trim().split('\n')[0]).trim() + ` ${item.name}`,
                 availability: item.inventoryKey,
-                price: item.price
+                price: parseFloat(item.price.toString().replace(/,/g, ''))
             };
         }
         parsedItem.thumbnail = $($('[itemprop="image"]')[0]).attr('content');
@@ -167,14 +180,14 @@ class Crawler {
 
     getAvailability($) {
         let availability = $($('var.availability')[0]).text();
-        return availability != '' ? availability : $($('.outOfStockMessage')[0]).text();
+        return availability != '' ? availability : 'out_of_stock';
     }
 
     saveItems(lastItems) {
         let itemPromises = [];
 
         for (let i = 0; i < lastItems.length; i++) {
-            // console.log('MATCH: ', ++this.matchCounter);
+            console.log('MATCH: ', ++this.matchCounter);
             itemPromises.push(this.itemRepository.saveItem(lastItems[i]));
         }
 
@@ -192,6 +205,10 @@ class Crawler {
             // console.log('Name: ' + this.lastItems[i].name + ' Price: ' + this.lastItems[i].price + ' Availability: ' + this.lastItems[i].availability);
             // console.log('Thumbnail: ' + this.lastItems[i].thumbnail)
         }
+    }
+
+    static formatUrl(url) {
+        return url.indexOf('cntry=us') != -1 ? url : url.indexOf('?') != -1 ? url + '&cntry=us' : url + '?cntry=us';
     }
 
     replaceSpaces(string) {

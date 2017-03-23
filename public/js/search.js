@@ -1,6 +1,13 @@
 (function() {
     var ENTER = 13;
 
+    $('select').material_select();
+
+    $('#list-size').change(function(){
+        window.location = '/?listSize=' + $(this).val();
+    });
+
+
     var search = document.getElementById('search');
     search.addEventListener('keyup', onEnter);
 
