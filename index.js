@@ -48,6 +48,20 @@ app.post('/crawl-item', function (req, res) {
    }
 });
 
+app.delete('/crawl-item/:id', function (req, res) {
+    try {
+        crawler.deleteItem(req.params.id).then(() => {
+            res.status(200).send({
+                message: 'Item successfully removed!'
+            });
+        }).catch((error) => {
+            res.status(400).send(JSON.stringify(error));
+        });
+    } catch (e) {
+        res.status(500).send(JSON.stringify(e));
+    }
+});
+
 app.listen(MainConfig.PORT, function () {
     console.log(`Example app listening on port ${MainConfig.PORT}!`);
 });

@@ -31,6 +31,24 @@ class ItemRepository {
         });
     }
 
+    deleteItem(id) {
+        return new Promise((resolve, reject) => {
+            this.connection.query(
+                `DELETE FROM items
+                 WHERE id = ? 
+                `,
+                [id],
+                (err, results) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(results);
+                    }
+                }
+            )
+        });
+    }
+
     checkItem(mfName) {
         return new Promise((resolve, reject) => {
            this.connection.query(
@@ -236,7 +254,7 @@ class ItemRepository {
         });
     }
 
-    getItemPage(page, itemsPerPage) {
+    getItemPage(page, itemsPerPage, query, sort) {
         return new Promise((resolve, reject) => {
             this.connection.query(
                 `SELECT * FROM items
@@ -246,7 +264,7 @@ class ItemRepository {
                     ON (p1.item_id = p2.item_id AND p1.id < p2.id)
                     WHERE p2.item_id IS NULL
                  ) prices ON items.id = prices.item_id
-                 ORDER BY items.id ASC
+                 ORDER BY items.last_change ${sort}
                  LIMIT ?, ?
                 `, [
                     page * itemsPerPage,
@@ -280,7 +298,7 @@ class ItemRepository {
         });
     }
 
-    getByName(page, itemsPerPage, query) {
+    getByName(page, itemsPerPage, query, order) {
         try {
             var escapedQuery = query.replace(/[+\-><\(\)~*\"@]+/g, ' ').trim();
 
@@ -304,16 +322,15 @@ class ItemRepository {
                  ) prices ON items.id = prices.item_id
                  WHERE
                      MATCH(mf_name,amazon_name) AGAINST(${this.connection.escape(searchQuery)} IN BOOLEAN MODE)
-                 ORDER BY items.id ASC
+                 ORDER BY items.id ${order}
                  LIMIT ?, ?
                 `
             : `SELECT *
                  FROM items
                  LEFT JOIN (SELECT item_id, price, MAX(date) max_date FROM item_prices GROUP BY item_id) prices ON items.id = prices.item_id
-                 ORDER BY id ASC
+                 ORDER BY id ${order}
                  LIMIT ?, ?
                 `;
-
 
         return new Promise((resolve, reject) => {
             this.connection.query(

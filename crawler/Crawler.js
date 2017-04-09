@@ -200,6 +200,16 @@ class Crawler {
         })
     }
 
+    deleteItem(id) {
+        return new Promise((resolve, reject) => {
+            this.itemRepository.deleteItem(id).then(() => {
+                resolve();
+            }).catch((error) => {
+                reject(error);
+            })
+        });
+    }
+
     listItems() {
         for (let i = 0; i < this.lastItems.length; ++i) {
             // console.log('Name: ' + this.lastItems[i].name + ' Price: ' + this.lastItems[i].price + ' Availability: ' + this.lastItems[i].availability);

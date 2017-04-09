@@ -9,7 +9,7 @@
 
     $('#crawl-finish').modal({
             complete: function () {
-                window.location = '/';
+                window.location = '';
             }
         }
     );

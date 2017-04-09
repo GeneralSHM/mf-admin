@@ -9,6 +9,8 @@ class HomeView {
         this.shouldSearch = typeof request.query.search != 'undefined';
         this.searchParam = request.query.search;
 
+        this.sortOrder = typeof request.query.order == 'string' && request.query.order.toUpperCase() == 'DESC' ? 'DESC' : 'ASC';
+
         let queryListSize = parseInt(request.query.listSize);
 
         this.itemsPerPage = typeof request.query.listSize != 'undefined' && !isNaN(queryListSize) && queryListSize >= 1 ? queryListSize : 50;
@@ -35,6 +37,7 @@ class HomeView {
                     <td><a href="${item.url}" target="_blank" class="waves-effect waves-light btn">Open MF</a></td>
                     <td>${(new Date(item.date_added)).toLocaleString()}</td>
                     <td>${(new Date(item.last_change)).toLocaleString()}</td>
+                    <td><i class="material-icons btn-delete" data-name="${item.mf_name}" data-db-id="${item.item_id}">delete</i></td>
                 </tr>
             `;
         }
@@ -52,7 +55,8 @@ class HomeView {
                         <th class="center-align" data-field="availability">Availability</th>
                         <th data-field="link">Link</th>
                         <th data-field="date-added">Added on</th>
-                        <th data-field="date-scraped">Last change</th>
+                        <th data-field="date-scraped"><span>Last change</span><span class="arrow-down"></span><span class="arrow-up"></span></th>
+                        <th data-field="delete"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -89,7 +93,7 @@ class HomeView {
         return new Promise((resolve, reject) => {
             let method = this.shouldSearch ? 'getByName' : 'getItemPage';
 
-            this.itemRepository[method](this.currentPage, this.itemsPerPage, this.searchParam).then((result) => {
+            this.itemRepository[method](this.currentPage, this.itemsPerPage, this.searchParam, this.sortOrder).then((result) => {
                 resolve( `
                     ${this.getTable(result)}
                     ${this.getPagination()}
