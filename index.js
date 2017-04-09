@@ -62,6 +62,23 @@ app.delete('/crawl-item/:id', function (req, res) {
     }
 });
 
+app.patch('/crawl-item/:id', function (req, res) {
+    try {
+        crawler.editItem(req.params.id, {
+            amazon_name: req.body.name,
+            amazon_price: req.body.price
+        }).then(() => {
+            res.status(200).send({
+                message: 'Item successfully updated!'
+            });
+        }).catch((error) => {
+            res.status(400).send(JSON.stringify(error));
+        });
+    } catch (e) {
+        res.status(500).send(JSON.stringify(e));
+    }
+});
+
 app.listen(MainConfig.PORT, function () {
     console.log(`Example app listening on port ${MainConfig.PORT}!`);
 });

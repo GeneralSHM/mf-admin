@@ -28,7 +28,7 @@ class HomeView {
                     <td>${item.price}$</td>
                     <td class="${item.diff > 0 ? 'red darken-1' : item.diff < 0 ? 'green lighen-1' : ''}">${item.diff > 0 ? `+${item.diff}` : item.diff}$</td>
                     <td>${item.amazon_name == '' ? 'Not set' : item.amazon_name}</td>
-                    <td>${item.amazon_price}</td>
+                    <td>${item.amazon_price}$</td>
                     <td class="center-align">
                         <div class="chip item-availability ${item.availability == 'in_stock' ? 'light-green accent-3' : 'pink accent-3'}">
                             ${item.availability == 'in_stock' ? 'Available' : 'Unavailable'}
@@ -37,6 +37,7 @@ class HomeView {
                     <td><a href="${item.url}" target="_blank" class="waves-effect waves-light btn">Open MF</a></td>
                     <td>${(new Date(item.date_added)).toLocaleString()}</td>
                     <td>${(new Date(item.last_change)).toLocaleString()}</td>
+                    <td><i class="material-icons btn-edit" data-amazon-name="${item.amazon_name}" data-amazon-price="${item.amazon_price}" data-db-id="${item.item_id}">mode_edit</i></td>
                     <td><i class="material-icons btn-delete" data-name="${item.mf_name}" data-db-id="${item.item_id}">delete</i></td>
                 </tr>
             `;
@@ -55,7 +56,8 @@ class HomeView {
                         <th class="center-align" data-field="availability">Availability</th>
                         <th data-field="link">Link</th>
                         <th data-field="date-added">Added on</th>
-                        <th data-field="date-scraped"><span>Last change</span><span class="arrow-down"></span><span class="arrow-up"></span></th>
+                        <th data-field="date-scraped"><span>Last change</span><div><span class="arrow-down"></span><span class="arrow-up"></span></div></th>
+                        <th data-field="edit"></th>
                         <th data-field="delete"></th>
                     </tr>
                 </thead>
@@ -94,6 +96,8 @@ class HomeView {
             let method = this.shouldSearch ? 'getByName' : 'getItemPage';
 
             this.itemRepository[method](this.currentPage, this.itemsPerPage, this.searchParam, this.sortOrder).then((result) => {
+                console.log(result[0], method);
+
                 resolve( `
                     ${this.getTable(result)}
                     ${this.getPagination()}
@@ -124,7 +128,7 @@ class HomeView {
                               <option value="200" ${this.itemsPerPage == 200 ? 'selected' : ''}>200</option>
                             </select>
                             <label>Items per page</label>
-     
+                        </div>
                     </div>
                     ${table}
                 `;

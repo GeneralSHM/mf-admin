@@ -78,6 +78,7 @@ nav {
     opacity: 1;
 }
 
-.btn-delete {
+.btn-delete,
+.btn-edit {
     cursor: pointer;
 }

@@ -45,7 +45,29 @@ class ItemRepository {
                         resolve(results);
                     }
                 }
-            )
+            );
+        });
+    }
+
+    editItem(id, data) {
+        return new Promise((resolve, reject) => {
+           this.connection.query(
+               `UPDATE items
+                SET ?
+                WHERE id = ?
+               `,
+               [
+                   data,
+                   id
+               ],
+               (err, results) => {
+                   if (err) {
+                       reject(err);
+                   } else {
+                       resolve(results);
+                   }
+               }
+           );
         });
     }
 
@@ -86,10 +108,13 @@ class ItemRepository {
 
     updateItem(newData, oldData) {
         return new Promise((resolve, reject) => {
+            let newPrice = newData.price != null ? newData.price.toFixed(2) : 0;
+            let oldPrice = oldData.price != null ? oldData.price.toFixed(2) : 0;
+
             if (
                 newData.availability == oldData.availability
                 && newData.thumbnail == oldData.thumbnail
-                && parseFloat(newData.price.toFixed(2)) == parseFloat(oldData.price.toFixed(2))
+                && parseFloat(newPrice) == parseFloat(oldPrice)
             ) {
                 resolve();
             } else {
@@ -327,7 +352,7 @@ class ItemRepository {
                 `
             : `SELECT *
                  FROM items
-                 LEFT JOIN (SELECT item_id, price, MAX(date) max_date FROM item_prices GROUP BY item_id) prices ON items.id = prices.item_id
+                 LEFT JOIN (SELECT item_id, diff, price, MAX(date) max_date FROM item_prices GROUP BY item_id) prices ON items.id = prices.item_id
                  ORDER BY id ${order}
                  LIMIT ?, ?
                 `;

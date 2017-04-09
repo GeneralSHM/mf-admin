@@ -196,7 +196,7 @@ class Crawler {
                 resolve();
             }).catch((error) => {
                 reject(error);
-            })
+            });
         })
     }
 
@@ -206,7 +206,17 @@ class Crawler {
                 resolve();
             }).catch((error) => {
                 reject(error);
-            })
+            });
+        });
+    }
+
+    editItem(id, data) {
+        return new Promise((resolve, reject) => {
+            this.itemRepository.editItem(id, data).then(() => {
+                resolve();
+            }).catch((error) => {
+                reject(error);
+            });
         });
     }
 

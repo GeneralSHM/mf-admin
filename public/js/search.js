@@ -81,6 +81,10 @@
             }).done(function(response) {
                 Materialize.toast(response.message, TOAST_TIMEOUT, 'green lighten-1');
 
+                setTimeout(function () {
+                    window.location = '';
+                }, 1000);
+
             }).fail(function(error) {
                 Materialize.toast(error.responseText, TOAST_TIMEOUT, 'red darken-2');
             });

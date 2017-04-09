@@ -58,4 +58,37 @@
             Materialize.toast(error.responseText, TOAST_TIMEOUT, 'red darken-2');
         });
     });
+
+    $('.btn-edit').on('click', function() {
+        $('#amazon-name').val($(this).attr('data-amazon-name'));
+        $('#amazon-price').val($(this).attr('data-amazon-price'));
+        Materialize.updateTextFields();
+        $('#edit-item').modal('open');
+
+        var itemId = $(this).attr('data-db-id');
+
+        $('#edit-item-btn').off('click').on('click', function () {
+            var form = {
+                name: $('#amazon-name').val(),
+                price: $('#amazon-price').val()
+            };
+
+            $.ajax({
+                url: '/crawl-item/' + itemId,
+                method: 'PATCH',
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify(form)
+            }).done(function(response) {
+                Materialize.toast(response.message, TOAST_TIMEOUT, 'green lighten-1');
+
+                setTimeout(function () {
+                    window.location = '';
+                }, 1000);
+
+            }).fail(function(error) {
+                Materialize.toast(error.responseText, TOAST_TIMEOUT, 'red darken-2');
+            });
+        });
+    });
 })();
