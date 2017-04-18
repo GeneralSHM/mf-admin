@@ -53,6 +53,41 @@ let modals = `
         <a id="edit-item-btn" class="modal-action modal-close waves-effect waves-red btn-flat red lighten-3">Edit</a>
     </div>
 </div>
+<div id="upload-csv" class="modal">
+    <div class="modal-content">
+        <h4>Upload CSV for parsing</h4>
+		 <div class="row">
+            <form class="col s12">
+                <div class="row">
+                    <div class="file-field input-field">
+                        <div class="btn">
+                           <span>File</span>
+                           <input id="upload-input" type="file" name="csv" accept=".csv">
+                        </div>
+                        <div class="file-path-wrapper">
+                           <input class="file-path validate" type="text">
+                        </div>
+                    </div>
+                </div>
+            </form>
+		  </div>
+	</div>
+    <div class="modal-footer">
+        <a href="#!" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+        <a id="upload-item-btn" class="modal-action modal-close waves-effect waves-red btn-flat red lighten-3">Upload</a>
+    </div>
+</div>
+<div id="upload-fail" class="modal">
+    <div class="modal-content">
+        <h4>Failed to parse:</h4>
+		 <div id="fail-table"></div>
+	</div>
+    <div class="modal-footer">
+        <a href="#!" class="modal-action modal-close waves-effect waves-red btn-flat">Close</a>
+    </div>
+</div>
+
+
 `;
 
 module.exports = modals;

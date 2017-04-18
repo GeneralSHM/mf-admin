@@ -9,7 +9,7 @@ class HomeView {
         this.shouldSearch = typeof request.query.search != 'undefined';
         this.searchParam = request.query.search;
 
-        this.sortOrder = typeof request.query.order == 'string' && request.query.order.toUpperCase() == 'DESC' ? 'DESC' : 'ASC';
+        this.sortOrder = typeof request.query.order == 'string' && request.query.order.toUpperCase() == 'ASC' ? 'ASC' : 'DESC';
 
         let queryListSize = parseInt(request.query.listSize);
 

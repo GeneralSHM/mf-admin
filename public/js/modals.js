@@ -1,7 +1,6 @@
 (function () {
     var TOAST_TIMEOUT = 4000;
 
-
     $('.modal').modal();
 
     var crawlButton = document.querySelector('.manual-crawl');
@@ -91,4 +90,48 @@
             });
         });
     });
+
+    $('.upload-item').on('click', function () {
+        $('#upload-csv').modal('open');
+
+        $('#upload-item-btn').off('click').on('click', function () {
+            $('#loader-container').removeClass('hidden');
+            var data = new FormData();
+            data.append('csv', $('#upload-input')[0].files[0]);
+            $('#upload-csv').modal('close');
+
+            $.ajax({
+                url: '/crawl-csv',
+                data: data,
+                cache: false,
+                contentType: false,
+                processData: false,
+                type: 'POST',
+                success: function(response){
+                    $('#loader-container').addClass('hidden');
+                    Materialize.toast(response.message, TOAST_TIMEOUT, 'green lighten-1');
+
+                    if (response.failedItems.length > 0) {
+                        displayFailed(response.failedItems);
+                    }
+                }
+            }).fail(function(error) {
+                $('#loader-container').addClass('hidden');
+                Materialize.toast(error.responseText, TOAST_TIMEOUT, 'red darken-2');
+            });
+        });
+    });
+
+    function displayFailed(failedItems) {
+        var failTable = $('#fail-table');
+
+        failTable.empty();
+
+        for (var i = 0; i < failedItems.length; i++) {
+            $(failTable).append('<div class="row"><div class="col s12"> ' + (i + 1) + '. <a href="' + failedItems[i].url + '">' + failedItems[i].itemName + '</a></div>');
+        }
+
+        $('#upload-fail').modal('open');
+
+    }
 })();

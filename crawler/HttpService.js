@@ -6,11 +6,15 @@ let requestHandler = (res, resolve, reject) => {
     let error;
 
     if (statusCode !== 200) {
-        error = new Error(`Request Failed.\n` + `Status Code: ${statusCode}`);
+        error = {
+            message: `Request Failed.\n` + `Status Code: ${statusCode}`,
+            statusCode: statusCode,
+            location: res.headers.location
+        };
     }
 
     if (error) {
-        reject(error.message);
+        reject(error);
         // consume response data to free up memory
         res.resume();
         return;

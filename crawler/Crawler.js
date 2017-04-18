@@ -42,13 +42,13 @@ class Crawler {
     scrapeCSV(url) {
         return new Promise((resolve, reject) => {
             this.csvLoader.extractItems(url).then((items) => {
-                this.fetchFromList(items).then(() => {
-                    resolve();
+                this.fetchFromList(items).then((failedItems) => {
+                    resolve(failedItems);
                 }).catch((error) => {
                     reject(error);
                 });
             }).catch((e) => {
-                throw new Error(e);
+                reject(e);
             });
         });
     }
@@ -57,6 +57,8 @@ class Crawler {
         let itemPromises = [];
         let timeout = 0;
         let timeoutStep = 150;
+
+        let failedItems = [];
 
         for (let item of itemList) {
             itemPromises.push(new Promise((resolve, reject) => {
@@ -67,13 +69,18 @@ class Crawler {
                         console.log(this.counter++ + ' Fetch from "' + item.url + '" complete!');
                         resolve();
                     }).catch((e) => {
-                        console.error('URL: ' + item.url);
-                        console.error(e);
-                        this.itemRepository.setInactive(item.url).then(() => {
+                        if (e.noMatch) {
+                            failedItems.push(e.item);
                             resolve();
-                        }).catch((error) => {
-                            reject(error);
-                        });
+                        } else {
+                            console.error('URL: ' + item.url);
+                            console.error(e);
+                            this.itemRepository.setInactive(item.url).then(() => {
+                                resolve();
+                            }).catch((error) => {
+                                reject(error);
+                            });
+                        }
                     });
                 }, timeout);
 
@@ -83,7 +90,7 @@ class Crawler {
 
         return new Promise((resolve, reject) => {
             Promise.all(itemPromises).then(() => {
-                resolve();
+                resolve(failedItems);
             }).catch((error) => {
                 reject(error);
             })
@@ -94,14 +101,32 @@ class Crawler {
         return new Promise((resolve, reject) => {
             httpService.get(url).then((html) => {
                 let lastItems = this.getPrices(html, url, itemName);
-                this.saveItems(lastItems).then(() => {
-                    resolve(itemName);
-                }).catch((error) => {
-                    reject(error);
-                });
+                if (lastItems.length == 0) {
+                    reject({
+                        noMatch: true,
+                        item: {
+                            url: url,
+                            itemName: itemName
+                        }
+                    });
+                } else {
+                    this.saveItems(lastItems).then(() => {
+                        resolve(itemName);
+                    }).catch((error) => {
+                        reject(error);
+                    });
+                }
             }).catch((e) => {
-                console.error(e);
-                reject(e);
+                if (e.statusCode == 301) {
+                    this.fetchFrom(e.location, itemName).then((itemName) => {
+                        resolve(itemName);
+                    }).catch((error) => {
+                        reject(error);
+                    })
+                } else {
+                    console.error(e);
+                    reject(e);
+                }
             });
         });
     }
@@ -111,8 +136,8 @@ class Crawler {
             this.itemRepository.getAll().then((items) => {
                 // console.log('all', items);
 
-                this.fetchFromList(items).then(() => {
-                    resolve();
+                this.fetchFromList(items).then((failedItems) => {
+                    resolve(failedItems);
                 }).catch((error) => {
                     reject(error);
                 });
@@ -220,15 +245,21 @@ class Crawler {
         });
     }
 
-    listItems() {
-        for (let i = 0; i < this.lastItems.length; ++i) {
-            // console.log('Name: ' + this.lastItems[i].name + ' Price: ' + this.lastItems[i].price + ' Availability: ' + this.lastItems[i].availability);
-            // console.log('Thumbnail: ' + this.lastItems[i].thumbnail)
-        }
-    }
-
     static formatUrl(url) {
-        return url.indexOf('cntry=us') != -1 ? url : url.indexOf('?') != -1 ? url + '&cntry=us' : url + '?cntry=us';
+        let formattedURL = null;
+        let countryIndex = url.indexOf('cntry=us');
+        let hasQuery = url.indexOf('?') != -1;
+        let hashIndex = url.indexOf('#');
+
+        if (countryIndex == -1 && hasQuery) {
+            formattedURL = hashIndex == -1 ? url + '&cntry=us' : url.replace('#', '&cntry=us#');
+        } else if (countryIndex == -1 && !hasQuery) {
+            formattedURL = hashIndex == -1 ? url + '?cntry=us' : url.replace('#', '?cntry=us#');
+        } else {
+            formattedURL = url;
+        }
+
+        return formattedURL;
     }
 
     replaceSpaces(string) {

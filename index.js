@@ -1,7 +1,20 @@
 const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
+const multer  = require('multer');
+const storage = multer.diskStorage({
+    destination: 'uploads/',
+    filename: function (req, file, cb) {
+        let filePortions = file.originalname.split('.');
+        let extension = filePortions[filePortions.length - 1];
+
+        cb(null, file.fieldname + '-' + Date.now() + '.' + extension);
+    }
+});
+
+const upload = multer({ storage: storage });
 
 const MainConfig = require('./configs/main.config');
 
@@ -79,15 +92,39 @@ app.patch('/crawl-item/:id', function (req, res) {
     }
 });
 
-app.listen(MainConfig.PORT, function () {
-    console.log(`Example app listening on port ${MainConfig.PORT}!`);
+app.post('/crawl-csv', upload.single('csv'), function (req, res, next) {
+    let filePath = path.resolve(__dirname, req.file.destination, req.file.filename);
+
+    crawler.scrapeCSV(filePath).then((failedItems) => {
+        fs.unlink(filePath, (err) => {
+            if (err) {
+                console.error(err);
+                res.status(500).send(err);
+            } else {
+                console.log(`Successfully parsed and deleted: ${filePath}`);
+                res.status(200).send({
+                    message: 'CSV successfully parsed!',
+                    failedItems: failedItems
+                });
+            }
+        });
+    }).catch((e) => {
+        console.error(e);
+        res.status(400).send(e);
+
+        fs.unlink(filePath, (err) => {
+            if (err) {
+                console.error(err);
+            } else {
+                console.log(`Successfully deleted: ${filePath}`);
+            }
+        });
+    });
 });
 
-// crawler.scrapeCSV('./crawler/DEMO_1.csv').then(() => {
-//     console.log('CSV fully parsed');
-// }).catch((e) => {
-//     console.error(e);
-// });
+app.listen(MainConfig.PORT, function () {
+    console.log(`${MainConfig.PROJECT_NAME} listening on port ${MainConfig.PORT}!`);
+});
 
 /*
 * Auto crawling

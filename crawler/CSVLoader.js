@@ -20,14 +20,19 @@ class CSVLoader {
     }
 
     parse(data, resolve, reject) {
-        CSVParser.parse(data, (err, data) => {
-            if (err) {
-                reject(err);
-                return false;
-            }
+        try {
+            CSVParser.parse(data, (err, data) => {
+                if (err) {
+                    reject(err);
+                    return false;
+                }
 
-            this.transform(data, resolve, reject);
-        });
+                this.transform(data, resolve, reject);
+            });
+        } catch (e) {
+            reject(e);
+        }
+
     }
 
     transform(data, resolve, reject) {
