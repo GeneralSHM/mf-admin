@@ -40,6 +40,7 @@ class ItemRepository {
                 [id],
                 (err, results) => {
                     if (err) {
+                        console.error(err);
                         reject(err);
                     } else {
                         resolve(results);
@@ -62,6 +63,7 @@ class ItemRepository {
                ],
                (err, results) => {
                    if (err) {
+                       console.error(err);
                        reject(err);
                    } else {
                        resolve(results);
@@ -87,6 +89,7 @@ class ItemRepository {
                [mfName],
                (err, results) => {
                    if (err) {
+                       console.error(err);
                        reject(err);
                    } else {
                       if (results.length > 0) {
@@ -135,6 +138,7 @@ class ItemRepository {
                     ],
                     (err, results) => {
                         if (err) {
+                            console.error(err);
                             reject(err);
                         } else {
                             this.savePrice(oldData.item_real_id, newData).then((results) => {
@@ -163,6 +167,7 @@ class ItemRepository {
                     last_change: new Date()
                 }], (err, results) => {
                     if (err) {
+                        console.error(err);
                         reject(err);
                     } else {
                         this.savePrice(results.insertId, item).then((results) => {
@@ -186,6 +191,7 @@ class ItemRepository {
                 [id],
                 (err, results) => {
                     if (err) {
+                        console.error(err);
                         reject(err);
                     } else if (results[0] == null ||  parseFloat(results[0].price.toFixed(2)) != parseFloat(item.price.toFixed(2))) {
                         resolve(results[0] != null ? parseFloat(results[0].price.toFixed(2)) : null);
@@ -209,6 +215,7 @@ class ItemRepository {
                         date: new Date()
                     }], (err, results) => {
                         if (err) {
+                            console.error(err);
                             reject(err);
                         } else {
                             resolve(results);
@@ -226,6 +233,7 @@ class ItemRepository {
                 `SELECT mf_name as MFName, url FROM items`,
                 (err, results) => {
                     if (err) {
+                        console.error(err);
                         reject(err);
                     } else {
                         resolve(results);
@@ -264,6 +272,7 @@ class ItemRepository {
                 SQLQuery,
                 (err, count) => {
                     if (err) {
+                        console.error(err);
                         reject(err);
                     } else {
                         resolve(Math.ceil(count[0]['COUNT(id)'] / itemsPerPage));
@@ -297,6 +306,7 @@ class ItemRepository {
                 ],
                 (err, results) => {
                     if (err) {
+                        console.error(err);
                         reject(err);
                     } else {
                         resolve(results);
@@ -314,6 +324,7 @@ class ItemRepository {
                 [url],
                 (err, results) => {
                     if (err) {
+                        console.error(err);
                         reject(err)
                 } else {
                         resolve(results);
