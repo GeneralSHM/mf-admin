@@ -48,7 +48,7 @@ app.post('/crawl', function (req, res) {
 
 app.post('/crawl-item', function (req, res) {
    try {
-       crawler.fetchFrom(req.body.url, req.body.itemName).then((response) => {
+       crawler.fetchFrom(Crawler.formatUrl(req.body.url), req.body.itemName).then((response) => {
            console.log('Added/Updated: ', response);
            res.status(200).send({
                message: 'Item successfully added!'
