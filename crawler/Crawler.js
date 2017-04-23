@@ -14,7 +14,6 @@ class Crawler {
         this.itemRepository = new ItemRepository(connection);
         this.csvLoader = new CSVLoader();
         this.counter = 1;
-        this.matchCounter = 0;
 
         this.spaceCodes = [
             /\u0020+/g,
@@ -207,7 +206,6 @@ class Crawler {
         let itemPromises = [];
 
         for (let i = 0; i < lastItems.length; i++) {
-            console.log('MATCH: ', ++this.matchCounter);
             itemPromises.push(this.itemRepository.saveItem(lastItems[i]));
         }
 
