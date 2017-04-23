@@ -10,6 +10,7 @@ class HomeView {
         this.searchParam = request.query.search;
 
         this.sortOrder = typeof request.query.order == 'string' && request.query.order.toUpperCase() == 'ASC' ? 'ASC' : 'DESC';
+        this.sortBy = typeof request.query.filter == 'string' && request.query.filter.toLowerCase() == 'status' ? 'status' : 'modified';
 
         let queryListSize = parseInt(request.query.listSize);
 
@@ -53,10 +54,10 @@ class HomeView {
                         <th data-field="mf-price-delta">Price change</th>
                         <th data-field="name">Amazon Name</th>
                         <th data-field="price">Amazon Price</th>
-                        <th class="center-align" data-field="availability">Availability</th>
+                        <th class="center-align" data-field="availability"><span>Availability</span><div><span class="arrow-down status"></span><span class="arrow-up status"></span></div></th>
                         <th data-field="link">Link</th>
                         <th data-field="date-added">Added on</th>
-                        <th data-field="date-scraped"><span>Last change</span><div><span class="arrow-down"></span><span class="arrow-up"></span></div></th>
+                        <th data-field="date-scraped"><span>Last change</span><div><span class="arrow-down modify"></span><span class="arrow-up modify"></span></div></th>
                         <th data-field="edit"></th>
                         <th data-field="delete"></th>
                     </tr>
@@ -95,9 +96,7 @@ class HomeView {
         return new Promise((resolve, reject) => {
             let method = this.shouldSearch ? 'getByName' : 'getItemPage';
 
-            this.itemRepository[method](this.currentPage, this.itemsPerPage, this.searchParam, this.sortOrder).then((result) => {
-                console.log(result[0], method);
-
+            this.itemRepository[method](this.currentPage, this.itemsPerPage, this.searchParam, this.sortOrder, this.sortBy).then((result) => {
                 resolve( `
                     ${this.getTable(result)}
                     ${this.getPagination()}

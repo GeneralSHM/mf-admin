@@ -177,8 +177,6 @@ class ItemRepository {
 
     checkPrice(id, item) {
         return new Promise((resolve, reject) => {
-
-
             this.connection.query(
                 `SELECT price FROM item_prices 
                  WHERE item_id = ?
@@ -202,10 +200,6 @@ class ItemRepository {
     savePrice(id, item) {
         return new Promise((resolve, reject) => {
             this.checkPrice(id, item).then((oldPrice) => {
-                // if (item.name == 'Behringer Battery BAT1 Replacement Battery for EPA40') {
-                //     debugger;
-                // }
-
                 this.connection.query(
                     `INSERT INTO item_prices SET ?`,
                     [{
@@ -279,7 +273,13 @@ class ItemRepository {
         });
     }
 
-    getItemPage(page, itemsPerPage, query, sort) {
+    getItemPage(page, itemsPerPage, query, sort, sortBy) {
+        let orderStatement = sortBy == 'status' ? `items.availability ${sort}, items.last_change DESC` : `items.last_change ${sort}` ;
+
+        console.log(JSON.stringify(sortBy));
+        console.log(orderStatement);
+
+
         return new Promise((resolve, reject) => {
             this.connection.query(
                 `SELECT * FROM items
@@ -289,7 +289,7 @@ class ItemRepository {
                     ON (p1.item_id = p2.item_id AND p1.id < p2.id)
                     WHERE p2.item_id IS NULL
                  ) prices ON items.id = prices.item_id
-                 ORDER BY items.last_change ${sort}
+                 ORDER BY ${orderStatement}
                  LIMIT ?, ?
                 `, [
                     page * itemsPerPage,
@@ -323,13 +323,15 @@ class ItemRepository {
         });
     }
 
-    getByName(page, itemsPerPage, query, order) {
+    getByName(page, itemsPerPage, query, order, orderBy) {
         try {
             var escapedQuery = query.replace(/[+\-><\(\)~*\"@]+/g, ' ').trim();
 
         } catch (e) {
             escapedQuery = '';
         }
+
+        let orderStatement = orderBy == 'status' ? `items.availability ${order}, items.last_change DESC` : `items.last_change ${order}` ;
 
         let shouldSearch = typeof query == 'string' && escapedQuery !== '';
 
@@ -347,13 +349,13 @@ class ItemRepository {
                  ) prices ON items.id = prices.item_id
                  WHERE
                      MATCH(mf_name,amazon_name) AGAINST(${this.connection.escape(searchQuery)} IN BOOLEAN MODE)
-                 ORDER BY items.id ${order}
+                 ORDER BY ${orderStatement}
                  LIMIT ?, ?
                 `
             : `SELECT *
                  FROM items
                  LEFT JOIN (SELECT item_id, diff, price, MAX(date) max_date FROM item_prices GROUP BY item_id) prices ON items.id = prices.item_id
-                 ORDER BY id ${order}
+                 ORDER BY ${orderStatement}
                  LIMIT ?, ?
                 `;
 

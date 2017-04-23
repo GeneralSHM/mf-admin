@@ -4,6 +4,8 @@ const HttpService = require('./HttpService');
 const ItemRepository = require('../repositories/ItemRepository');
 const CSVLoader = require('./CSVLoader');
 
+const MainConfig = require('../configs/main.config');
+
 const httpService = new HttpService();
 
 class Crawler {
@@ -56,7 +58,6 @@ class Crawler {
     fetchFromList(itemList) {
         let itemPromises = [];
         let timeout = 0;
-        let timeoutStep = 150;
 
         let failedItems = [];
 
@@ -84,7 +85,7 @@ class Crawler {
                     });
                 }, timeout);
 
-                timeout += timeoutStep;
+                timeout += MainConfig.TIMEOUT_STEP;
             }));
         }
 
@@ -134,8 +135,6 @@ class Crawler {
     fetchFromDB() {
         return new Promise((resolve, reject) => {
             this.itemRepository.getAll().then((items) => {
-                // console.log('all', items);
-
                 this.fetchFromList(items).then((failedItems) => {
                     resolve(failedItems);
                 }).catch((error) => {
@@ -186,14 +185,10 @@ class Crawler {
                 price: parseFloat(item.toString().replace(/,/g, ''))
             };
 
-            // if (parsedItem.name == 'Behringer Battery BAT1 Replacement Battery for EPA40') {
-            //     // parsedItem.availability = 'bahur-bombach';
-            //     parsedItem.price -= 0.1;
-            // }
         } else {
             parsedItem = {
                 name: this.replaceSpaces($('div[itemprop="name"]').text().trim().split('\n')[0]).trim() + ` ${item.name}`,
-                availability: item.inventoryKey,
+                availability: item.inventoryKey != 'in_stock' ? 'out_of_stock' : item.inventoryKey,
                 price: parseFloat(item.price.toString().replace(/,/g, ''))
             };
         }

@@ -39,33 +39,63 @@
         }
     }
 
-    var ascendingButton = document.querySelector('.arrow-up');
-    ascendingButton.addEventListener('click', function () {
+    var ascendingModifyButton = document.querySelector('.arrow-up.modify');
+    ascendingModifyButton.addEventListener('click', function () {
         var currentURL = window.location.href;
         var hasParams = currentURL.indexOf('?') != -1;
         var hasOrder = currentURL.indexOf('order=') != -1;
 
         if (hasOrder) {
-            window.location = currentURL.replace('order=desc', 'order=asc');
+            window.location = currentURL.replace('order=desc', 'order=asc').replace('filter=status', 'filter=modified');
         } else if (hasParams) {
-            window.location = currentURL + '&order=asc';
+            window.location = currentURL + '&order=asc&filter=modified';
         } else {
-            window.location = currentURL + '?order=asc';
+            window.location = currentURL + '?order=asc&filter=modified';
         }
     });
 
-    var descendingButton = document.querySelector('.arrow-down');
-    descendingButton.addEventListener('click', function () {
+    var descendingModifyButton = document.querySelector('.arrow-down.modify');
+    descendingModifyButton.addEventListener('click', function () {
         var currentURL = window.location.href;
         var hasParams = currentURL.indexOf('?') != -1;
         var hasOrder = currentURL.indexOf('order=') != -1;
 
         if (hasOrder) {
-            window.location = currentURL.replace('order=asc', 'order=desc');
+            window.location = currentURL.replace('order=asc', 'order=desc').replace('filter=status', 'filter=modified');
         } else if (hasParams) {
-            window.location = currentURL + '&order=desc';
+            window.location = currentURL + '&order=desc&filter=modified';
         } else {
-            window.location = currentURL + '?order=desc';
+            window.location = currentURL + '?order=desc&filter=modified';
+        }
+    });
+
+    var ascendingStatusButton = document.querySelector('.arrow-up.status');
+    ascendingStatusButton.addEventListener('click', function () {
+        var currentURL = window.location.href;
+        var hasParams = currentURL.indexOf('?') != -1;
+        var hasOrder = currentURL.indexOf('order=') != -1;
+
+        if (hasOrder) {
+            window.location = currentURL.replace('order=desc', 'order=asc').replace('filter=modified', 'filter=status');
+        } else if (hasParams) {
+            window.location = currentURL + '&order=asc&filter=status';
+        } else {
+            window.location = currentURL + '?order=asc&filter=status';
+        }
+    });
+
+    var descendingStatusButton = document.querySelector('.arrow-down.status');
+    descendingStatusButton.addEventListener('click', function () {
+        var currentURL = window.location.href;
+        var hasParams = currentURL.indexOf('?') != -1;
+        var hasOrder = currentURL.indexOf('order=') != -1;
+
+        if (hasOrder) {
+            window.location = currentURL.replace('order=asc', 'order=desc').replace('filter=modified', 'filter=status');
+        } else if (hasParams) {
+            window.location = currentURL + '&order=desc&filter=status';
+        } else {
+            window.location = currentURL + '?order=desc&filter=status';
         }
     });
 
