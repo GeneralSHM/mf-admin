@@ -39,3 +39,4 @@ jspm_packages
 
 .idea
 uploads
+configs/db.config.js
