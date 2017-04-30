@@ -8,6 +8,8 @@ const MainConfig = require('../configs/main.config');
 
 const httpService = new HttpService();
 
+const IS_DEBUG = process.ENV.DEBUG == 'debug';
+
 class Crawler {
     constructor(connection) {
         this.lastItems = [];
@@ -55,6 +57,7 @@ class Crawler {
     }
 
     fetchFromList(itemList) {
+        this.counter = 0;
         let itemPromises = [];
         let timeout = 0;
 
@@ -66,7 +69,9 @@ class Crawler {
                     item.url = Crawler.formatUrl(item.url);
 
                     this.fetchFrom(item.url, item.MFName).then(() => {
-                        console.log(this.counter++ + ' Fetch from "' + item.url + '" complete!');
+                        if (IS_DEBUG) {
+                            console.log(this.counter++ + ' Fetch from "' + item.url + '" complete!');
+                        }
                         resolve();
                     }).catch((e) => {
                         if (e.noMatch) {

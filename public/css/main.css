@@ -82,3 +82,11 @@ nav {
 .btn-edit {
     cursor: pointer;
 }
+
+.broken-link {
+    background-color: #ff4d4d !important;
+}
+
+.broken-link * {
+    text-decoration: line-through;
+}

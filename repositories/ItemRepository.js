@@ -1,5 +1,7 @@
 'use strict';
 
+const IS_DEBUG = process.ENV.DEBUG == 'debug';
+
 class ItemRepository {
     constructor(connection) {
         this.connection = connection;
@@ -9,11 +11,6 @@ class ItemRepository {
         return new Promise((resolve, reject) => {
             this.checkItem(item.name).then((result) => {
                 if (result.found) {
-                    if (result.item.mf_name == 'Behringer Battery BAT1 Replacement Battery for EPA40') {
-                        // console.log(result);
-                        // console.log(item);
-                    }
-
                     item.is_url_active = true;
 
                     this.updateItem(item, result.item).then(() => {
@@ -289,8 +286,10 @@ class ItemRepository {
     getItemPage(page, itemsPerPage, query, sort, sortBy) {
         let orderStatement = sortBy == 'status' ? `items.availability ${sort}, items.last_change DESC` : `items.last_change ${sort}` ;
 
-        console.log(JSON.stringify(sortBy));
-        console.log(orderStatement);
+        if (IS_DEBUG) {
+            console.log(JSON.stringify(sortBy));
+            console.log(orderStatement);
+        }
 
 
         return new Promise((resolve, reject) => {
