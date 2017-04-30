@@ -120,6 +120,7 @@ class ItemRepository {
             if (
                 newData.availability == oldData.availability
                 && newData.thumbnail == oldData.thumbnail
+                && newData.is_url_active == oldData.is_url_active
                 && parseFloat(newPrice) == parseFloat(oldPrice)
             ) {
                 resolve();
