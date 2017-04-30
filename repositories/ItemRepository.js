@@ -10,7 +10,8 @@ class ItemRepository {
             this.checkItem(item.name).then((result) => {
                 if (result.found) {
                     if (result.item.mf_name == 'Behringer Battery BAT1 Replacement Battery for EPA40') {
-                        console.log(result);
+                        // console.log(result);
+                        console.log(item);
                     }
 
                     this.updateItem(item, result.item).then(() => {
