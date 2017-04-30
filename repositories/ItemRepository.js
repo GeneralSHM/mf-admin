@@ -11,8 +11,10 @@ class ItemRepository {
                 if (result.found) {
                     if (result.item.mf_name == 'Behringer Battery BAT1 Replacement Battery for EPA40') {
                         // console.log(result);
-                        console.log(item);
+                        // console.log(item);
                     }
+
+                    item.is_url_active = true;
 
                     this.updateItem(item, result.item).then(() => {
                         resolve();
