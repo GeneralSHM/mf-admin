@@ -23,7 +23,7 @@ class HomeView {
 
         for (let item of items) {
             tableRows += `
-                <tr>
+                <tr class="${item.is_url_active ? '' : 'broken-link'}">
                     <td class="img-col"><img class="circle responsive-img" src="${item.thumbnail}" alt="${item.mf_name}"></td>
                     <td>${item.mf_name}</td>
                     <td>${item.price}$</td>
