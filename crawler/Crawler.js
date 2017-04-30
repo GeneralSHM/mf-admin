@@ -8,7 +8,7 @@ const MainConfig = require('../configs/main.config');
 
 const httpService = new HttpService();
 
-const IS_DEBUG = process.ENV.DEBUG == 'debug';
+const IS_DEBUG = process.env.DEBUG == 'debug';
 
 class Crawler {
     constructor(connection) {

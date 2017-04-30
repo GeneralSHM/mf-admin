@@ -1,6 +1,6 @@
 'use strict';
 
-const IS_DEBUG = process.ENV.DEBUG == 'debug';
+const IS_DEBUG = process.env.DEBUG == 'debug';
 
 class ItemRepository {
     constructor(connection) {
