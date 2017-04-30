@@ -35,7 +35,7 @@ class HomeView {
                             ${item.availability == 'in_stock' ? 'Available' : 'Unavailable'}
                         </div>
                     </td>
-                    <td><a href="${item.url}" target="_blank" class="waves-effect waves-light btn">Open MF</a></td>
+                    <td><a href="${item.url}" target="_blank" class="waves-effect waves-light btn">${item.is_url_active ? 'Open MF' : 'BROKEN LINK!'}</a></td>
                     <td>${(new Date(item.date_added)).toLocaleString()}</td>
                     <td>${(new Date(item.last_change)).toLocaleString()}</td>
                     <td><i class="material-icons btn-edit" data-amazon-name="${item.amazon_name}" data-amazon-price="${item.amazon_price}" data-db-id="${item.item_id}">mode_edit</i></td>
