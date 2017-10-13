@@ -114,11 +114,16 @@ class ItemRepository {
             let newPrice = newData.price != null ? newData.price.toFixed(2) : 0;
             let oldPrice = oldData.price != null ? oldData.price.toFixed(2) : 0;
 
+            if (!newData.sku) {
+                newData.sku = oldData.amazon_name;
+            }
+
             if (
                 newData.availability == oldData.availability
                 && newData.thumbnail == oldData.thumbnail
                 && newData.is_url_active == oldData.is_url_active
                 && parseFloat(newPrice) == parseFloat(oldPrice)
+                && newData.sku == oldData.amazon_name
             ) {
                 resolve();
             } else {
@@ -133,6 +138,7 @@ class ItemRepository {
                             has_status_changed: newData.availability != oldData.availability,
                             thumbnail: newData.thumbnail,
                             is_url_active: true,
+                            amazon_name: newData.sku,
                             last_change: new Date()
                         },
                         oldData.mf_name
@@ -165,7 +171,8 @@ class ItemRepository {
                     thumbnail: item.thumbnail,
                     url: item.url,
                     date_added: new Date(),
-                    last_change: new Date()
+                    last_change: new Date(),
+                    amazon_name: item.sku
                 }], (err, results) => {
                     if (err) {
                         console.error(err);
@@ -256,14 +263,20 @@ class ItemRepository {
 
         if (typeof query == 'string') {
            var searchQuery = '*' + escapedQuery.split(' ').join('* *') + '*';
+           var searchString = this.connection.escape(searchQuery);
         }
+
 
         let SQLQuery = shouldSearch ? `
                  SELECT COUNT(id)
                  FROM items
                  WHERE
-                     MATCH(mf_name,amazon_name) AGAINST(${this.connection.escape(searchQuery)} IN BOOLEAN MODE)
-                `
+                 (
+                    mf_name = ${searchString}
+                 OR
+                    amazon_name = ${searchString}
+                 )
+                 `
             : `SELECT COUNT(id)
                  FROM items
                 `;
@@ -286,7 +299,7 @@ class ItemRepository {
     getItemPage(page, itemsPerPage, query, sort, sortBy) {
         let orderStatement = sortBy == 'status' ? `items.availability ${sort}, items.last_change DESC` : `items.last_change ${sort}` ;
 
-        if (IS_DEBUG) {
+        if (IS_DEBUG || 1===1) {
             console.log(JSON.stringify(sortBy));
             console.log(orderStatement);
         }
@@ -353,6 +366,8 @@ class ItemRepository {
             var searchQuery = '*' + escapedQuery.split(' ').join('* *') + '*';
         }
 
+        let searchString = this.connection.escape(query);
+
         let SQLQuery = shouldSearch ? `
                  SELECT * FROM items
                  LEFT JOIN (
@@ -362,7 +377,11 @@ class ItemRepository {
                     WHERE p2.item_id IS NULL
                  ) prices ON items.id = prices.item_id
                  WHERE
-                     MATCH(mf_name,amazon_name) AGAINST(${this.connection.escape(searchQuery)} IN BOOLEAN MODE)
+                    (
+                        mf_name = ${searchString}
+                    OR
+                        amazon_name = ${searchString}
+                    )
                  ORDER BY ${orderStatement}
                  LIMIT ?, ?
                 `

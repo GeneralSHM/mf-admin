@@ -32,14 +32,14 @@ class CSVLoader {
         } catch (e) {
             reject(e);
         }
-
     }
 
     transform(data, resolve, reject) {
         CSVParser.transform(data, (data) => {
             return {
                 MFName: data[0],
-                url: data[1].replace('https', 'http')
+                url: data[1].replace('https', 'http'),
+                sku: data[2]
             };
         }, (err, data) => {
             if (err) {

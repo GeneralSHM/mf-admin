@@ -68,7 +68,7 @@ class Crawler {
                 setTimeout(() => {
                     item.url = Crawler.formatUrl(item.url);
 
-                    this.fetchFrom(item.url, item.MFName).then(() => {
+                    this.fetchFrom(item.url, item.MFName, item.sku).then(() => {
                         if (IS_DEBUG) {
                             console.log(this.counter++ + ' Fetch from "' + item.url + '" complete!');
                         }
@@ -102,7 +102,7 @@ class Crawler {
         });
     }
 
-    fetchFrom(url, itemName) {
+    fetchFrom(url, itemName, sku) {
         return new Promise((resolve, reject) => {
             httpService.get(url).then((html) => {
                 let lastItems = this.getPrices(html, url, itemName);
@@ -111,10 +111,14 @@ class Crawler {
                         noMatch: true,
                         item: {
                             url: url,
-                            itemName: itemName
+                            itemName: itemName,
+                            sku: sku
                         }
                     });
                 } else {
+                    lastItems.forEach((item) => {
+                      item.sku = sku;
+                    });
                     this.saveItems(lastItems).then(() => {
                         resolve(itemName);
                     }).catch((error) => {
