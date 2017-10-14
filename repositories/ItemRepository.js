@@ -238,7 +238,7 @@ class ItemRepository {
     getAll() {
         return new Promise((resolve, reject) => {
             this.connection.query(
-                `SELECT mf_name as MFName, url FROM items`,
+                `SELECT mf_name as MFName, url, amazon_name as sku FROM items`,
                 (err, results) => {
                     if (err) {
                         console.error(err);
