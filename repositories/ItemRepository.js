@@ -1,10 +1,12 @@
 'use strict';
 
 const IS_DEBUG = process.env.DEBUG == 'debug';
+const UpdateHistoryRepository = require('./UpdateHistoryRepository');
 
 class ItemRepository {
     constructor(connection) {
         this.connection = connection;
+        this.updateHistoryRepository = new UpdateHistoryRepository(connection);
     }
 
     saveItem(item) {
@@ -120,13 +122,22 @@ class ItemRepository {
 
             if (
                 newData.availability == oldData.availability
-                && newData.thumbnail == oldData.thumbnail
                 && newData.is_url_active == oldData.is_url_active
                 && parseFloat(newPrice) == parseFloat(oldPrice)
                 && newData.sku == oldData.amazon_name
             ) {
                 resolve();
-            } else {
+            } else
+                this.updateHistoryRepository.savePrice({
+                    item_mf_name: oldData.mf_name,
+                    changes: {
+                        availability: newData.availability == oldData.availability,
+                        thumbnail: newData.thumbnail == oldData.thumbnail,
+                        is_url_active: newData.is_url_active == oldData.is_url_active,
+                        price: parseFloat(newPrice) == parseFloat(oldPrice),
+                        sku: newData.sku == oldData.amazon_name
+                    }
+                });
                 this.connection.query(
                     `UPDATE items
                     SET ?
