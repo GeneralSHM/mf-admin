@@ -127,7 +127,7 @@ class ItemRepository {
                 && newData.sku == oldData.amazon_name
             ) {
                 resolve();
-            } else
+            } else {
                 this.updateHistoryRepository.savePrice({
                     item_mf_name: oldData.mf_name,
                     changes: {
