@@ -103,6 +103,9 @@ class Crawler {
     }
 
     fetchFrom(url, itemName, sku) {
+        if (!sku) {
+            sku = '';
+        }
         return new Promise((resolve, reject) => {
             httpService.get(url).then((html) => {
                 let lastItems = this.getPrices(html, url, itemName);
