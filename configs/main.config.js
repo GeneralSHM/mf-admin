@@ -4,5 +4,6 @@ module.exports = {
     PROJECT_NAME: 'Music Crawler',
     CRAWL_INTERVAL: 4 * HOUR,
     PORT: 8080,
+    IS_CRAWLING: false,
     TIMEOUT_STEP: 150 //ms - crawl request timeout
 };

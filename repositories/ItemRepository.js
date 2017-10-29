@@ -1,5 +1,7 @@
 'use strict';
 
+const MainConfig = require('../configs/main.config');
+
 const IS_DEBUG = process.env.DEBUG == 'debug';
 const UpdateHistoryRepository = require('./UpdateHistoryRepository');
 
@@ -120,11 +122,17 @@ class ItemRepository {
                 newData.sku = oldData.amazon_name;
             }
 
+            let isCrawling = MainConfig.IS_CRAWLING;
+            let hasSkuChanged = newData.sku == oldData.amazon_name;
+            if (isCrawling) {
+                hasSkuChanged = true;
+            }
+
             if (
                 newData.availability == oldData.availability
                 && newData.is_url_active == oldData.is_url_active
                 && parseFloat(newPrice) == parseFloat(oldPrice)
-                && newData.sku == oldData.amazon_name
+                && hasSkuChanged
             ) {
                 resolve();
             } else {

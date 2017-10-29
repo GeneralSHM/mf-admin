@@ -39,9 +39,12 @@ app.get('/', function (req, res) {
 });
 
 app.post('/crawl', function (req, res) {
+    MainConfig.IS_CRAWLING = true;
     crawler.fetchFromDB().then(() => {
+        MainConfig.IS_CRAWLING = false;
         res.send({});
     }).catch((e) => {
+        MainConfig.IS_CRAWLING = false;
         res.send(e);
     });
 });
@@ -130,11 +133,14 @@ app.listen(MainConfig.PORT, function () {
 * Auto crawling
 * */
 setInterval(() => {
+    MainConfig.IS_CRAWLING = true;
     crawler.fetchFromDB().then(() => {
         console.log(`Crawl finished at: ${Date.now()}`);
+        MainConfig.IS_CRAWLING = false;
 
     }).catch(() => {
         console.error(`Crawl failed at: ${Date.now()}`);
+        MainConfig.IS_CRAWLING = false;
     });
 
 }, MainConfig.CRAWL_INTERVAL);
