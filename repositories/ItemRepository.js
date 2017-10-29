@@ -377,6 +377,7 @@ class ItemRepository {
             var searchQuery = '*' + escapedQuery.split(' ').join('* *') + '*';
         }
 
+        query = '%' + query + '%';
         let searchString = this.connection.escape(query);
 
         let SQLQuery = shouldSearch ? `
@@ -389,9 +390,9 @@ class ItemRepository {
                  ) prices ON items.id = prices.item_id
                  WHERE
                     (
-                        mf_name = ${searchString}
+                        mf_name LIKE ${searchString}
                     OR
-                        amazon_name = ${searchString}
+                        amazon_name LIKE ${searchString}
                     )
                  ORDER BY ${orderStatement}
                  LIMIT ?, ?
