@@ -102,13 +102,13 @@ class Crawler {
         });
     }
 
-    fetchFrom(url, itemName, sku) {
+    fetchFrom(url, itemName, sku, isSingleItem) {
         if (!sku) {
             sku = '';
         }
         return new Promise((resolve, reject) => {
             httpService.get(url).then((html) => {
-                let lastItems = this.getPrices(html, url, itemName);
+                let lastItems = this.getPrices(html, url, itemName, isSingleItem);
                 if (lastItems.length == 0) {
                     reject({
                         noMatch: true,
@@ -157,7 +157,7 @@ class Crawler {
         });
     }
 
-    getPrices(html, url, itemName) {
+    getPrices(html, url, itemName, isSingleMatch) {
         let items = [];
         let $ = cheerio.load(html);
         let itemVariations = $('var.styleInfo');
@@ -167,11 +167,15 @@ class Crawler {
         for (var i = 0; i < DOMElements.length; i++) {
             let parsedElement = this.parseItem($, DOMElements[i], url);
 
-            if (typeof itemName != 'undefined' && (parsedElement.name.toLocaleLowerCase().includes(itemName.toLocaleLowerCase()) || itemName.toLocaleLowerCase().includes(parsedElement.name.toLocaleLowerCase()))) {
+            if (typeof itemName != 'undefined' && !isSingleMatch && (parsedElement.name.toLocaleLowerCase().includes(itemName.toLocaleLowerCase()) || itemName.toLocaleLowerCase().includes(parsedElement.name.toLocaleLowerCase()))) {
                 items.push(parsedElement);
                 break;
 
-            } else if (typeof itemName == 'undefined') {
+            } else if (typeof itemName != 'undefined' && isSingleMatch && parsedElement.name.toLocaleLowerCase() == itemName.toLocaleLowerCase()) {
+                items.push(parsedElement);
+                break;
+            }
+            else if (typeof itemName == 'undefined') {
                 items.push(parsedElement);
             }
 
