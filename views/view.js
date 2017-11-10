@@ -22,6 +22,11 @@ class View {
     }
 
     render(view, request) {
+
+        let navigationPartial = '';
+        if (view != 'login') {
+            navigationPartial = navigation;
+        }
         return new Promise((resolve, reject) => {
             const currentViewClass = require(path.join(__dirname, `pages/${view}`));
             let currentView = new currentViewClass(this.dbConnection, request);
@@ -32,7 +37,7 @@ class View {
                     <html lang="en">
                     ${head}
                     <body>
-                        ${navigation}
+                        ${navigationPartial}
                         <div class="view">
                             ${result}
                         </div>

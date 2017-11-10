@@ -5,5 +5,7 @@ module.exports = {
     CRAWL_INTERVAL: 4 * HOUR,
     PORT: 8080,
     IS_CRAWLING: false,
+    ADMIN_NAME: 'admin',
+    ADMIN_PASS: 'admin',
     TIMEOUT_STEP: 150 //ms - crawl request timeout
 };

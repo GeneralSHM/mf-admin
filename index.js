@@ -3,6 +3,10 @@ const fs = require('fs');
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
+var expressValidator = require('express-validator');
+var session = require('express-session');
+
 const multer  = require('multer');
 const storage = multer.diskStorage({
     destination: 'uploads/',
@@ -27,10 +31,40 @@ const mysql = new MySQL();
 const view = new View(mysql.connection);
 const crawler = new Crawler(mysql.connection);
 
+app.use(cookieParser());
+app.use(session({
+    secret: 'work hard',
+    resave: true,
+    saveUninitialized: false
+}));
+
+/*
+Helper Functions
+*/
+function authenticate(name, pass, fn) {
+    if (!module.parent) console.log('authenticating %s:%s', name, pass);
+
+    if (name == MainConfig.ADMIN_NAME && pass == MainConfig.ADMIN_PASS) {
+        return fn(null, true);
+    } else {
+        fn(new Error('invalid password'));
+    }
+}
+
+function requiredAuthentication(req, res, next) {
+    if (req.session.user) {
+        next();
+    } else {
+        req.session.error = 'Access denied!';
+        res.redirect('/login');
+    }
+}
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
+app.use(expressValidator());
 
-app.get('/', function (req, res) {
+app.get('/', requiredAuthentication, function (req, res) {
     view.render('home', req).then((data) => {
         res.send(data);
     }).catch((e) => {
@@ -122,6 +156,32 @@ app.post('/crawl-csv', upload.single('csv'), function (req, res, next) {
                 console.log(`Successfully deleted: ${filePath}`);
             }
         });
+    });
+});
+
+
+
+app.get("/login", function (req, res) {
+    view.render("login", req).then((data) => {
+        res.send(data);
+    }).catch((e) => {
+        res.send(e);
+    });
+});
+
+app.post("/login", function (req, res) {
+    console.log(req.body);
+    authenticate(req.body.username, req.body.password, function (err, user) {
+        if (user) {
+
+            req.session.regenerate(function () {
+                req.session.user = user;
+                res.send({success: true});
+            });
+        } else {
+            req.session.error = 'Authentication failed, please check your ' + ' username and password.';
+            res.send({success: false});
+        }
     });
 });
 

@@ -7,4 +7,34 @@ module.exports = `
     <!-- JS -->
     <script src="/js/search.js"></script>
     <script src="/js/modals.js"></script>
+    <script>
+    (function($) {
+        $(function() {
+            $('#login-form').on('submit', function (e) {
+                e.preventDefault();
+                var unindexed_array = $('#login-form').serializeArray();
+                var indexed_array = {};
+            
+                $.map(unindexed_array, function(n, i){
+                    indexed_array[n['name']] = n['value'];
+                });
+    
+                $.ajax({
+                    url: '/login',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    data: JSON.stringify(indexed_array)
+                }).done(function(response) {
+                    if (response.success == true) {
+                        window.location = '/';
+                    } else {
+                        $('#error')[0].innerHTML = 'Wrong username / password';
+                    }
+                }).fail(function(error) {
+                });
+            });
+        });
+    })(jQuery);
+    </script>
 `;
