@@ -7,6 +7,9 @@ var cookieParser = require('cookie-parser');
 var expressValidator = require('express-validator');
 var session = require('express-session');
 
+const amazon = require('./services/amazon');
+var asd = new amazon();
+asd.sendProductsToApi();
 const multer  = require('multer');
 const storage = multer.diskStorage({
     destination: 'uploads/',

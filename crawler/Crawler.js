@@ -3,6 +3,7 @@ const cheerio = require('cheerio');
 const HttpService = require('./HttpService');
 const ItemRepository = require('../repositories/ItemRepository');
 const CSVLoader = require('./CSVLoader');
+const AmazonApiService = require('../services/amazon');
 
 const MainConfig = require('../configs/main.config');
 
@@ -16,6 +17,7 @@ class Crawler {
         this.itemRepository = new ItemRepository(connection);
         this.csvLoader = new CSVLoader();
         this.counter = 1;
+        this.amazonApiService = new AmazonApiService();
 
         this.spaceCodes = [
             /\u0020+/g,
@@ -227,6 +229,11 @@ class Crawler {
 
         return new Promise((resolve, reject) => {
             Promise.all(itemPromises).then(() => {
+                const products = this.itemRepository.amazonApiService.changedProducts;
+                for (let i =0; i < products.length; i++) {
+                    this.amazonApiService.addProduct(products[i]);
+                }
+                this.amazonApiService.sendProductsToApi();
                 resolve();
             }).catch((error) => {
                 reject(error);

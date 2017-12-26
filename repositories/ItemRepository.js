@@ -4,11 +4,13 @@ const MainConfig = require('../configs/main.config');
 
 const IS_DEBUG = process.env.DEBUG == 'debug';
 const UpdateHistoryRepository = require('./UpdateHistoryRepository');
+const AmazonApiService = require('../services/amazon');
 
 class ItemRepository {
     constructor(connection) {
         this.connection = connection;
         this.updateHistoryRepository = new UpdateHistoryRepository(connection);
+        this.amazonApiService = new AmazonApiService();
     }
 
     saveItem(item) {
@@ -127,7 +129,9 @@ class ItemRepository {
             if (isCrawling) {
                 hasSkuChanged = true;
             }
-
+            // if (newData.sku == 'PM-RUNX-3CK2' || newData.sku == 'HY-N1J2-B0TN') {
+            //     newData.availability = 'out_of_stock';
+            // }
             if (
                 newData.availability == oldData.availability
                 && newData.is_url_active == oldData.is_url_active
@@ -136,6 +140,14 @@ class ItemRepository {
             ) {
                 resolve();
             } else {
+
+                if (newData.availability == 'out_of_stock'){
+                    this.amazonApiService.addProduct({
+                        MFName: oldData.mf_name,
+                        sku: newData.sku
+                    });
+                }
+
                 this.updateHistoryRepository.savePrice({
                     item_mf_name: oldData.mf_name,
                     changes: {
