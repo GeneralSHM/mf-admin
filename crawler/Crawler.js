@@ -104,14 +104,14 @@ class Crawler {
         });
     }
 
-    fetchFrom(url, itemName, sku, isSingleItem) {
+    fetchFrom(url, itemName, sku, isSingleItem, tryCount = 0) {
         if (!sku) {
             sku = '';
         }
         return new Promise((resolve, reject) => {
             httpService.get(url).then((html) => {
                 let lastItems = this.getPrices(html, url, itemName, isSingleItem);
-                if (lastItems.length == 0) {
+                if (parseInt(lastItems.length) === 0) {
                     reject({
                         noMatch: true,
                         item: {
@@ -131,8 +131,18 @@ class Crawler {
                     });
                 }
             }).catch((e) => {
-                if (e.statusCode == 301) {
-                    this.fetchFrom(e.location, itemName).then((itemName) => {
+                if (parseInt(e.statusCode) === 301) {
+                    this.fetchFrom(e.location, itemName, sku, isSingleItem).then((itemName) => {
+                        resolve(itemName);
+                    }).catch((error) => {
+                        reject(error);
+                    })
+                } else if (parseInt(e.statusCode) === 404) {
+                    if (tryCount === 4) {
+                        console.error(e);
+                        reject(e);
+                    }
+                    this.fetchFrom(url, itemName, sku, isSingleItem, (tryCount + 1)).then((itemName) => {
                         resolve(itemName);
                     }).catch((error) => {
                         reject(error);
