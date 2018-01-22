@@ -141,12 +141,13 @@ class Crawler {
                     if (tryCount === 4) {
                         console.error(e);
                         reject(e);
+                    } else {
+                        this.fetchFrom(url, itemName, sku, isSingleItem, (tryCount + 1)).then((itemName) => {
+                            resolve(itemName);
+                        }).catch((error) => {
+                            reject(error);
+                        });
                     }
-                    this.fetchFrom(url, itemName, sku, isSingleItem, (tryCount + 1)).then((itemName) => {
-                        resolve(itemName);
-                    }).catch((error) => {
-                        reject(error);
-                    })
                 } else {
                     console.error(e);
                     reject(e);
