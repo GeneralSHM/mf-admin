@@ -26,6 +26,9 @@
     var createButton = document.querySelector('.add-item');
     createButton.addEventListener('click', onCreateClick);
 
+    var createBrandButton = document.querySelector('.add-brand');
+    createBrandButton.addEventListener('click', onCreateBrandClick);
+
     $('#add-item').modal({
             complete: function () {
                 // window.location = '/';
@@ -35,6 +38,11 @@
 
     function onCreateClick(event) {
         $('#add-item').modal('open');
+    }
+
+
+    function onCreateBrandClick(event) {
+        $('#add-brand').modal('open');
     }
 
 
@@ -53,6 +61,24 @@
         }).done(function(response) {
             Materialize.toast(response.message, TOAST_TIMEOUT, 'green lighten-1');
 
+        }).fail(function(error) {
+            Materialize.toast(error.responseText, TOAST_TIMEOUT, 'red darken-2');
+        });
+    });
+
+    $('#add-brand-btn').on('click', function () {
+        var form = {
+            name: $('#addBrandName').val()
+        };
+
+        $.ajax({
+            url: '/add-brand',
+            method: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(form)
+        }).done(function(response) {
+            Materialize.toast(response.message, TOAST_TIMEOUT, 'green lighten-1');
         }).fail(function(error) {
             Materialize.toast(error.responseText, TOAST_TIMEOUT, 'red darken-2');
         });
