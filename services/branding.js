@@ -17,6 +17,22 @@ class BrandingSerivce{
 
         return this.brandRepo.addBrand(name);
     }
+
+    /**
+     *
+     * @param brandId
+     * @param brands
+     * @return {*}
+     */
+    getBrandById(brandId, brands) {
+        for (let brand of brands) {
+            if (brand.id == brandId) {
+                return brand;
+            }
+        }
+
+        return false;
+    }
 }
 
 module.exports = BrandingSerivce;

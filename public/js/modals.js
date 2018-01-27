@@ -79,6 +79,34 @@
             data: JSON.stringify(form)
         }).done(function(response) {
             Materialize.toast(response.message, TOAST_TIMEOUT, 'green lighten-1');
+
+            setTimeout(function () {
+                window.location = '';
+            }, 1000);
+        }).fail(function(error) {
+            Materialize.toast(error.responseText, TOAST_TIMEOUT, 'red darken-2');
+        });
+    });
+
+    $('.item-brand-select').on('change', function () {
+        if (this.selectedIndex === undefined) {
+            return;
+        }
+        var brandId = $(this.options[this.selectedIndex]).attr('brand-id');
+        var itemId = $(this).attr('item-id');
+        var data = {
+            itemId,
+            brandId
+        };
+
+        $.ajax({
+            url: '/change-item-brand',
+            method: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(data)
+        }).done(function(response) {
+            Materialize.toast(response.message, TOAST_TIMEOUT, 'green lighten-1');
         }).fail(function(error) {
             Materialize.toast(error.responseText, TOAST_TIMEOUT, 'red darken-2');
         });

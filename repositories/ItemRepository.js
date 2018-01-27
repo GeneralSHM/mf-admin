@@ -381,6 +381,24 @@ class ItemRepository {
         });
     }
 
+    updateItemBrand(itemId, brandId) {
+        return new Promise((resolve, reject) => {
+            this.connection.query(
+                `UPDATE items SET brand_id = ?
+                 WHERE id = ?`,
+                [brandId, itemId],
+                (err, results) => {
+                    if (err) {
+                        console.error(err);
+                        reject(err)
+                    } else {
+                        resolve(results);
+                    }
+                }
+            )
+        });
+    }
+
     getByName(page, itemsPerPage, query, order, orderBy) {
         try {
             var escapedQuery = query.replace(/[+\-><\(\)~*\"@]+/g, ' ').trim();

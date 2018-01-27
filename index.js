@@ -30,11 +30,13 @@ const MySQL = require('./services/mysql');
 
 const Crawler = require('./crawler/Crawler');
 const BrandingService = require('./services/branding');
+const ItemRepository = require('./repositories/ItemRepository');
 
 const mysql = new MySQL();
 const view = new View(mysql.connection);
 const crawler = new Crawler(mysql.connection);
 const brandingService = new BrandingService(mysql.connection);
+const ItemRepo = new ItemRepository(mysql.connection);
 
 app.use(cookieParser());
 app.use(session({
@@ -135,6 +137,18 @@ app.delete('/crawl-item/:id', function (req, res) {
             });
         }).catch((error) => {
             res.status(400).send(JSON.stringify(error));
+        });
+    } catch (e) {
+        res.status(500).send(JSON.stringify(e));
+    }
+});
+
+app.post('/change-item-brand', function (req, res) {
+    try {
+        ItemRepo.updateItemBrand(req.body.itemId, req.body.brandId).then(() => {
+            res.status(200).send({
+                message: "Brand changed."
+            });
         });
     } catch (e) {
         res.status(500).send(JSON.stringify(e));
