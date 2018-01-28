@@ -16,6 +16,7 @@ class ItemRepository {
     saveItem(item) {
         return new Promise((resolve, reject) => {
             this.checkItem(item.name).then((result) => {
+                console.log("RESULTTTTT", result);
                 if (result.found) {
                     item.is_url_active = true;
 
@@ -129,14 +130,13 @@ class ItemRepository {
             if (isCrawling) {
                 hasSkuChanged = true;
             }
-            // if (newData.sku == 'PM-RUNX-3CK2' || newData.sku == 'HY-N1J2-B0TN') {
-            //     newData.availability = 'out_of_stock';
-            // }
+
             if (
                 newData.availability == oldData.availability
                 && newData.is_url_active == oldData.is_url_active
                 && parseFloat(newPrice) == parseFloat(oldPrice)
                 && hasSkuChanged
+                && parseInt(newData.brand) === parseInt(oldData.brand_id)
             ) {
                 resolve();
             } else {
@@ -151,11 +151,12 @@ class ItemRepository {
                 this.updateHistoryRepository.savePrice({
                     item_mf_name: oldData.mf_name,
                     changes: {
-                        availability: newData.availability == oldData.availability,
-                        thumbnail: newData.thumbnail == oldData.thumbnail,
-                        is_url_active: newData.is_url_active == oldData.is_url_active,
-                        price: parseFloat(newPrice) == parseFloat(oldPrice),
-                        sku: newData.sku == oldData.amazon_name
+                        availability: newData.availability === oldData.availability,
+                        thumbnail: newData.thumbnail === oldData.thumbnail,
+                        is_url_active: newData.is_url_active === oldData.is_url_active,
+                        price: parseFloat(newPrice) === parseFloat(oldPrice),
+                        sku: newData.sku === oldData.amazon_name,
+                        brand: parseInt(newData.brand) === parseInt(oldData.brand_id)
                     }
                 });
                 this.connection.query(
@@ -170,7 +171,8 @@ class ItemRepository {
                             thumbnail: newData.thumbnail,
                             is_url_active: true,
                             amazon_name: newData.sku,
-                            last_change: new Date()
+                            last_change: new Date(),
+                            brand_id: newData.brand
                         },
                         oldData.mf_name
                     ],
@@ -203,7 +205,8 @@ class ItemRepository {
                     url: item.url,
                     date_added: new Date(),
                     last_change: new Date(),
-                    amazon_name: item.sku
+                    amazon_name: item.sku,
+                    brand_id: item.brand
                 }], (err, results) => {
                     if (err) {
                         console.error(err);
@@ -269,7 +272,7 @@ class ItemRepository {
     getAll() {
         return new Promise((resolve, reject) => {
             this.connection.query(
-                `SELECT mf_name as MFName, url, amazon_name as sku FROM items`,
+                `SELECT mf_name as MFName, url, amazon_name as sku, brand.id as brandID FROM items left join brand on (items.brand_id = brand.id)`,
                 (err, results) => {
                     if (err) {
                         console.error(err);

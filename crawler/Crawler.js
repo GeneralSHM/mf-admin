@@ -2,6 +2,7 @@ const cheerio = require('cheerio');
 
 const HttpService = require('./HttpService');
 const ItemRepository = require('../repositories/ItemRepository');
+const BrandingService = require('../services/branding');
 const CSVLoader = require('./CSVLoader');
 const AmazonApiService = require('../services/amazon');
 
@@ -18,6 +19,7 @@ class Crawler {
         this.csvLoader = new CSVLoader();
         this.counter = 1;
         this.amazonApiService = new AmazonApiService();
+        this.brandingService = new BrandingService(connection);
 
         this.spaceCodes = [
             /\u0020+/g,
@@ -47,10 +49,13 @@ class Crawler {
     scrapeCSV(url) {
         return new Promise((resolve, reject) => {
             this.csvLoader.extractItems(url).then((items) => {
-                this.fetchFromList(items).then((failedItems) => {
-                    resolve(failedItems);
-                }).catch((error) => {
-                    reject(error);
+                // add brands before that.
+                this.brandingService.insertNonExistingBrandsByName(items).then((items) => {
+                    this.fetchFromList(items).then((failedItems) => {
+                        resolve(failedItems);
+                    }).catch((error) => {
+                        reject(error);
+                    });
                 });
             }).catch((e) => {
                 reject(e);
@@ -70,7 +75,7 @@ class Crawler {
                 setTimeout(() => {
                     item.url = Crawler.formatUrl(item.url);
 
-                    this.fetchFrom(item.url, item.MFName, item.sku).then(() => {
+                    this.fetchFrom(item.url, item.MFName, item.sku, item.brandID).then(() => {
                         if (IS_DEBUG) {
                             console.log(this.counter++ + ' Fetch from "' + item.url + '" complete!');
                         }
@@ -104,9 +109,12 @@ class Crawler {
         });
     }
 
-    fetchFrom(url, itemName, sku, isSingleItem, tryCount = 0) {
+    fetchFrom(url, itemName, sku, brand, isSingleItem, tryCount = 0) {
         if (!sku) {
             sku = '';
+        }
+        if (!brand) {
+            brand = 0;
         }
         return new Promise((resolve, reject) => {
             httpService.get(url).then((html) => {
@@ -117,12 +125,18 @@ class Crawler {
                         item: {
                             url: url,
                             itemName: itemName,
-                            sku: sku
+                            sku: sku,
+                            brand: brand
                         }
                     });
                 } else {
                     lastItems.forEach((item) => {
                       item.sku = sku;
+                      if (item.name === itemName) {
+                          item.brand = brand;
+                      } else {
+                          item.brand = 0;
+                      }
                     });
                     this.saveItems(lastItems).then(() => {
                         resolve(itemName);
@@ -132,7 +146,7 @@ class Crawler {
                 }
             }).catch((e) => {
                 if (parseInt(e.statusCode) === 301) {
-                    this.fetchFrom(e.location, itemName, sku, isSingleItem).then((itemName) => {
+                    this.fetchFrom(e.location, itemName, sku, brand, isSingleItem).then((itemName) => {
                         resolve(itemName);
                     }).catch((error) => {
                         reject(error);
@@ -142,7 +156,7 @@ class Crawler {
                         console.error(e);
                         reject(e);
                     } else {
-                        this.fetchFrom(url, itemName, sku, isSingleItem, (tryCount + 1)).then((itemName) => {
+                        this.fetchFrom(url, itemName, sku, brand, isSingleItem, (tryCount + 1)).then((itemName) => {
                             resolve(itemName);
                         }).catch((error) => {
                             reject(error);
