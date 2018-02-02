@@ -16,7 +16,6 @@ class ItemRepository {
     saveItem(item) {
         return new Promise((resolve, reject) => {
             this.checkItem(item.name).then((result) => {
-                console.log("RESULTTTTT", result);
                 if (result.found) {
                     item.is_url_active = true;
 
@@ -118,6 +117,11 @@ class ItemRepository {
 
     updateItem(newData, oldData) {
         return new Promise((resolve, reject) => {
+            if (newData.availability === 'out_of_stock') {
+                if (newData.price === -1 && oldData.price > 0) {
+                    newData.price = oldData.price;
+                }
+            }
             let newPrice = newData.price != null ? newData.price.toFixed(2) : 0;
             let oldPrice = oldData.price != null ? oldData.price.toFixed(2) : 0;
 

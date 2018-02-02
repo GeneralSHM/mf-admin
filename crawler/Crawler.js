@@ -191,6 +191,15 @@ class Crawler {
 
         let DOMElements = itemVariations.length > 0 ? itemVariations : $('var.price');
 
+        if ($('#prodoutofstock_rr > h3').length === 1) {
+            items.push({
+                name: itemName,
+                availability: 'out_of_stock',
+                url: url,
+                price: -1,
+                thumbnail: $($('[itemprop="image"]')[0]).attr('content')
+            });
+        }
         for (var i = 0; i < DOMElements.length; i++) {
             let parsedElement = this.parseItem($, DOMElements[i], url);
 
