@@ -10,7 +10,7 @@ class HomeView {
         this.pageCount = null;
         this.currentPage = typeof request.query.page != 'undefined' && !isNaN(parseInt(request.query.page)) && parseInt(request.query.page) >= 1 ? parseInt(request.query.page) - 1 : 0;
         this.shouldSearch = typeof request.query.search != 'undefined';
-        this.searchParam = request.query.search;
+        this.searchParam = request.query.search.trim();
         this.brandFilterIds = [];
         if (request.query.brand) {
             this.brandFilterIds = request.query.brand.split(',').map((brand) => parseInt(brand));
