@@ -99,6 +99,21 @@
         }
     });
 
+    $('#brand-filter-select').on('change', function () {
+        var selectedBrands = $(this).val();
+        var currentURL = window.location.href;
+        var hasParams = currentURL.indexOf('?') != -1;
+        var hasBrand = currentURL.indexOf('brand') != -1;
+
+        if (hasBrand) {
+            window.location = currentURL.replace(/brand=[\d*,]*/g, 'brand=' + selectedBrands.join(','));
+        } else if (hasParams) {
+            window.location = currentURL + "&brand=" + selectedBrands.join(',');
+        } else {
+            window.location = currentURL + "?brand=" + selectedBrands.join(',');
+        }
+    });
+
     $('.btn-delete').on('click', function () {
         var isConfirmed = window.confirm('Are you sure you want to delete ' + $(this).attr('data-name') + ' ?');
 

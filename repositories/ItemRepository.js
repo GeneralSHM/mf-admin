@@ -289,7 +289,7 @@ class ItemRepository {
         });
     }
 
-    getItemPageCount(itemsPerPage, query) {
+    getItemPageCount(itemsPerPage, query, brandIds) {
         try {
             var escapedQuery = query.replace(/[+\-><\(\)~*\"@]+/g, ' ').trim();
 
@@ -304,6 +304,16 @@ class ItemRepository {
            var searchString = this.connection.escape(searchQuery);
         }
 
+        var brandQuery = '';
+        if (brandIds.length > 0) {
+            if (shouldSearch) {
+                brandQuery = 'AND items.brand_id IN (-1 '
+            } else {
+                brandQuery = 'WHERE items.brand_id IN (-1 ';
+            }
+            brandIds.forEach(brandId => brandQuery += ',' + brandId);
+            brandQuery += ') ';
+        }
 
         let SQLQuery = shouldSearch ? `
                  SELECT COUNT(id)
@@ -314,9 +324,11 @@ class ItemRepository {
                  OR
                     amazon_name = ${searchString}
                  )
+                 ${brandQuery}
                  `
             : `SELECT COUNT(id)
                  FROM items
+                 ${brandQuery}
                 `;
 
         return new Promise((resolve, reject) => {
@@ -334,7 +346,7 @@ class ItemRepository {
         });
     }
 
-    getItemPage(page, itemsPerPage, query, sort, sortBy) {
+    getItemPage(page, itemsPerPage, query, sort, sortBy, brandIds) {
         let orderStatement = sortBy == 'status' ? `items.availability ${sort}, items.last_change DESC` : `items.last_change ${sort}` ;
 
         if (IS_DEBUG || 1===1) {
@@ -342,6 +354,12 @@ class ItemRepository {
             console.log(orderStatement);
         }
 
+        var brandQuery = '';
+        if (brandIds.length > 0) {
+            brandQuery = 'WHERE items.brand_id IN (-1 ';
+            brandIds.forEach(brandId => brandQuery += ',' + brandId);
+            brandQuery += ') ';
+        }
 
         return new Promise((resolve, reject) => {
             this.connection.query(
@@ -352,6 +370,7 @@ class ItemRepository {
                     ON (p1.item_id = p2.item_id AND p1.id < p2.id)
                     WHERE p2.item_id IS NULL
                  ) prices ON items.id = prices.item_id
+                 ${brandQuery}
                  ORDER BY ${orderStatement}
                  LIMIT ?, ?
                 `, [
@@ -406,7 +425,7 @@ class ItemRepository {
         });
     }
 
-    getByName(page, itemsPerPage, query, order, orderBy) {
+    getByName(page, itemsPerPage, query, order, orderBy, brandIds) {
         try {
             var escapedQuery = query.replace(/[+\-><\(\)~*\"@]+/g, ' ').trim();
 
@@ -420,6 +439,17 @@ class ItemRepository {
 
         if (shouldSearch) {
             var searchQuery = '*' + escapedQuery.split(' ').join('* *') + '*';
+        }
+
+        var brandQuery = '';
+        if (brandIds.length > 0) {
+            if (shouldSearch) {
+                brandQuery = 'AND items.brand_id IN (-1 '
+            } else {
+                brandQuery = 'WHERE items.brand_id IN (-1 ';
+            }
+            brandIds.forEach(brandId => brandQuery += ',' + brandId);
+            brandQuery += ') ';
         }
 
         query = '%' + query + '%';
@@ -439,12 +469,14 @@ class ItemRepository {
                     OR
                         amazon_name LIKE ${searchString}
                     )
+                    ${brandQuery}
                  ORDER BY ${orderStatement}
                  LIMIT ?, ?
                 `
             : `SELECT *
                  FROM items
                  LEFT JOIN (SELECT item_id, diff, price, MAX(date) max_date FROM item_prices GROUP BY item_id) prices ON items.id = prices.item_id
+                 ${brandQuery}
                  ORDER BY ${orderStatement}
                  LIMIT ?, ?
                 `;
