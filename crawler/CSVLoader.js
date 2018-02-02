@@ -39,7 +39,8 @@ class CSVLoader {
             return {
                 MFName: data[0],
                 url: data[1].replace('https', 'http'),
-                sku: data[2]
+                sku: data[2],
+                brand: data[3]
             };
         }, (err, data) => {
             if (err) {

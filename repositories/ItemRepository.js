@@ -117,6 +117,11 @@ class ItemRepository {
 
     updateItem(newData, oldData) {
         return new Promise((resolve, reject) => {
+            if (newData.availability === 'out_of_stock') {
+                if (newData.price === -1 && oldData.price > 0) {
+                    newData.price = oldData.price;
+                }
+            }
             let newPrice = newData.price != null ? newData.price.toFixed(2) : 0;
             let oldPrice = oldData.price != null ? oldData.price.toFixed(2) : 0;
 
@@ -129,14 +134,13 @@ class ItemRepository {
             if (isCrawling) {
                 hasSkuChanged = true;
             }
-            // if (newData.sku == 'PM-RUNX-3CK2' || newData.sku == 'HY-N1J2-B0TN') {
-            //     newData.availability = 'out_of_stock';
-            // }
+
             if (
                 newData.availability == oldData.availability
                 && newData.is_url_active == oldData.is_url_active
                 && parseFloat(newPrice) == parseFloat(oldPrice)
                 && hasSkuChanged
+                && parseInt(newData.brand) === parseInt(oldData.brand_id)
             ) {
                 resolve();
             } else {
@@ -151,11 +155,12 @@ class ItemRepository {
                 this.updateHistoryRepository.savePrice({
                     item_mf_name: oldData.mf_name,
                     changes: {
-                        availability: newData.availability == oldData.availability,
-                        thumbnail: newData.thumbnail == oldData.thumbnail,
-                        is_url_active: newData.is_url_active == oldData.is_url_active,
-                        price: parseFloat(newPrice) == parseFloat(oldPrice),
-                        sku: newData.sku == oldData.amazon_name
+                        availability: newData.availability === oldData.availability,
+                        thumbnail: newData.thumbnail === oldData.thumbnail,
+                        is_url_active: newData.is_url_active === oldData.is_url_active,
+                        price: parseFloat(newPrice) === parseFloat(oldPrice),
+                        sku: newData.sku === oldData.amazon_name,
+                        brand: parseInt(newData.brand) === parseInt(oldData.brand_id)
                     }
                 });
                 this.connection.query(
@@ -170,7 +175,8 @@ class ItemRepository {
                             thumbnail: newData.thumbnail,
                             is_url_active: true,
                             amazon_name: newData.sku,
-                            last_change: new Date()
+                            last_change: new Date(),
+                            brand_id: newData.brand
                         },
                         oldData.mf_name
                     ],
@@ -203,7 +209,8 @@ class ItemRepository {
                     url: item.url,
                     date_added: new Date(),
                     last_change: new Date(),
-                    amazon_name: item.sku
+                    amazon_name: item.sku,
+                    brand_id: item.brand
                 }], (err, results) => {
                     if (err) {
                         console.error(err);
@@ -269,7 +276,7 @@ class ItemRepository {
     getAll() {
         return new Promise((resolve, reject) => {
             this.connection.query(
-                `SELECT mf_name as MFName, url, amazon_name as sku FROM items`,
+                `SELECT mf_name as MFName, url, amazon_name as sku, brand.id as brandID FROM items left join brand on (items.brand_id = brand.id)`,
                 (err, results) => {
                     if (err) {
                         console.error(err);
@@ -282,7 +289,7 @@ class ItemRepository {
         });
     }
 
-    getItemPageCount(itemsPerPage, query) {
+    getItemPageCount(itemsPerPage, query, brandIds) {
         try {
             var escapedQuery = query.replace(/[+\-><\(\)~*\"@]+/g, ' ').trim();
 
@@ -297,6 +304,16 @@ class ItemRepository {
            var searchString = this.connection.escape(searchQuery);
         }
 
+        var brandQuery = '';
+        if (brandIds.length > 0) {
+            if (shouldSearch) {
+                brandQuery = 'AND items.brand_id IN (-1 '
+            } else {
+                brandQuery = 'WHERE items.brand_id IN (-1 ';
+            }
+            brandIds.forEach(brandId => brandQuery += ',' + brandId);
+            brandQuery += ') ';
+        }
 
         let SQLQuery = shouldSearch ? `
                  SELECT COUNT(id)
@@ -307,9 +324,11 @@ class ItemRepository {
                  OR
                     amazon_name = ${searchString}
                  )
+                 ${brandQuery}
                  `
             : `SELECT COUNT(id)
                  FROM items
+                 ${brandQuery}
                 `;
 
         return new Promise((resolve, reject) => {
@@ -327,7 +346,7 @@ class ItemRepository {
         });
     }
 
-    getItemPage(page, itemsPerPage, query, sort, sortBy) {
+    getItemPage(page, itemsPerPage, query, sort, sortBy, brandIds) {
         let orderStatement = sortBy == 'status' ? `items.availability ${sort}, items.last_change DESC` : `items.last_change ${sort}` ;
 
         if (IS_DEBUG || 1===1) {
@@ -335,6 +354,12 @@ class ItemRepository {
             console.log(orderStatement);
         }
 
+        var brandQuery = '';
+        if (brandIds.length > 0) {
+            brandQuery = 'WHERE items.brand_id IN (-1 ';
+            brandIds.forEach(brandId => brandQuery += ',' + brandId);
+            brandQuery += ') ';
+        }
 
         return new Promise((resolve, reject) => {
             this.connection.query(
@@ -345,6 +370,7 @@ class ItemRepository {
                     ON (p1.item_id = p2.item_id AND p1.id < p2.id)
                     WHERE p2.item_id IS NULL
                  ) prices ON items.id = prices.item_id
+                 ${brandQuery}
                  ORDER BY ${orderStatement}
                  LIMIT ?, ?
                 `, [
@@ -381,7 +407,25 @@ class ItemRepository {
         });
     }
 
-    getByName(page, itemsPerPage, query, order, orderBy) {
+    updateItemBrand(itemId, brandId) {
+        return new Promise((resolve, reject) => {
+            this.connection.query(
+                `UPDATE items SET brand_id = ?
+                 WHERE id = ?`,
+                [brandId, itemId],
+                (err, results) => {
+                    if (err) {
+                        console.error(err);
+                        reject(err)
+                    } else {
+                        resolve(results);
+                    }
+                }
+            )
+        });
+    }
+
+    getByName(page, itemsPerPage, query, order, orderBy, brandIds) {
         try {
             var escapedQuery = query.replace(/[+\-><\(\)~*\"@]+/g, ' ').trim();
 
@@ -395,6 +439,17 @@ class ItemRepository {
 
         if (shouldSearch) {
             var searchQuery = '*' + escapedQuery.split(' ').join('* *') + '*';
+        }
+
+        var brandQuery = '';
+        if (brandIds.length > 0) {
+            if (shouldSearch) {
+                brandQuery = 'AND items.brand_id IN (-1 '
+            } else {
+                brandQuery = 'WHERE items.brand_id IN (-1 ';
+            }
+            brandIds.forEach(brandId => brandQuery += ',' + brandId);
+            brandQuery += ') ';
         }
 
         query = '%' + query + '%';
@@ -414,12 +469,14 @@ class ItemRepository {
                     OR
                         amazon_name LIKE ${searchString}
                     )
+                    ${brandQuery}
                  ORDER BY ${orderStatement}
                  LIMIT ?, ?
                 `
             : `SELECT *
                  FROM items
                  LEFT JOIN (SELECT item_id, diff, price, MAX(date) max_date FROM item_prices GROUP BY item_id) prices ON items.id = prices.item_id
+                 ${brandQuery}
                  ORDER BY ${orderStatement}
                  LIMIT ?, ?
                 `;

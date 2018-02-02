@@ -30,6 +30,25 @@ let modals = `
         <a id="add-item-btn" class="modal-action modal-close waves-effect waves-red btn-flat red lighten-3">Add</a>
     </div>
 </div>
+<div id="add-brand" class="modal">
+    <div class="modal-content">
+        <h4>Add brand</h4>
+		 <div class="row">
+			<form class="col s12">
+                <div class="row">
+                    <div class="input-field col s12">
+                            <input id="addBrandName" type="text" class="validate" required>
+                        <label for="addBrandName">Brand name</label>
+                    </div>
+                </div>
+			</form>
+		 </div>
+	</div>
+    <div class="modal-footer">
+        <a href="#!" class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+        <a id="add-brand-btn" class="modal-action modal-close waves-effect waves-red btn-flat red lighten-3">Add</a>
+    </div>
+</div>
 <div id="edit-item" class="modal">
     <div class="modal-content">
         <h4>Edit item</h4>
