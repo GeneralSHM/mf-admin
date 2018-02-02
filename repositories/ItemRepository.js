@@ -346,6 +346,29 @@ class ItemRepository {
         });
     }
 
+    getItemsForCsvExport() {
+        return new Promise((resolve, reject) => {
+            this.connection.query(
+                `SELECT items.mf_name as name, 
+                items.url as url, 
+                items.amazon_name as sku, 
+                brand.name as brand 
+                FROM \`items\` 
+                LEFT JOIN brand 
+                ON (brand.id = items.brand_id)
+                `,
+                (err, results) => {
+                    if (err) {
+                        console.error(err);
+                        reject(err);
+                    } else {
+                        resolve(results);
+                    }
+                }
+            )
+        });
+    }
+
     getItemPage(page, itemsPerPage, query, sort, sortBy, brandIds) {
         let orderStatement = sortBy == 'status' ? `items.availability ${sort}, items.last_change DESC` : `items.last_change ${sort}` ;
 

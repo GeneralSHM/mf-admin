@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var expressValidator = require('express-validator');
 var session = require('express-session');
+var csv = require('express-csv');
 
 const amazon = require('./services/amazon');
 var asd = new amazon();
@@ -225,6 +226,16 @@ app.post("/login", function (req, res) {
             req.session.error = 'Authentication failed, please check your ' + ' username and password.';
             res.send({success: false});
         }
+    });
+});
+
+app.get('/csv-export', function (req, res) {
+    ItemRepo.getItemsForCsvExport().then((items) => {
+        var csvData = [['Name', 'Url', 'SKU' , 'Brand']];
+        for(let item of items) {
+            csvData.push([item.name, item.url, item.sku, item.brand]);
+        }
+        res.csv(csvData);
     });
 });
 
