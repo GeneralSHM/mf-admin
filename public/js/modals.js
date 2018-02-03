@@ -88,6 +88,39 @@
         });
     });
 
+    $('.send-to-amazon-checkbox').on('change', function () {
+        var itemId = $(this).attr('item-id');
+
+        updateItemSendToAmazon(itemId);
+    });
+
+    $('#send-to-amazon-checkbox-all').on('change', function () {
+        $.each($('.send-to-amazon-checkbox'), function (index, el) {
+            var itemId = $(el).attr('item-id');
+            var checked = $(el).prop('checked');
+            if(checked) {
+                $(el).removeAttr('checked');
+            } else {
+                $(el).prop('checked', 'checked');
+            }
+
+            updateItemSendToAmazon(itemId);
+        });
+    });
+
+    function updateItemSendToAmazon(itemId) {
+        $.ajax({
+            url: '/updateSendToAmazonStatus/' + itemId,
+            method: 'PUT',
+            contentType: 'application/json',
+            dataType: 'json'
+        }).done(function(response) {
+            Materialize.toast(response.message, TOAST_TIMEOUT, 'green lighten-1');
+        }).fail(function(error) {
+            Materialize.toast(error.responseText, TOAST_TIMEOUT, 'red darken-2');
+        });
+    }
+
     $('.item-brand-select').on('change', function () {
         if (this.selectedIndex === undefined) {
             return;

@@ -156,6 +156,18 @@ app.post('/change-item-brand', function (req, res) {
     }
 });
 
+app.put('/updateSendToAmazonStatus/:itemId', function (req, res) {
+    try {
+        ItemRepo.updateAmazonStatus(req.params.itemId).then(() => {
+            res.status(200).send({
+                message: "Item updated."
+            });
+        });
+    } catch (e) {
+        res.status(500).send(JSON.stringify(e));
+    }
+});
+
 app.patch('/crawl-item/:id', function (req, res) {
     try {
         crawler.editItem(req.params.id, {

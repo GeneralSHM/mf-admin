@@ -412,6 +412,26 @@ class ItemRepository {
         });
     }
 
+    updateAmazonStatus(itemId) {
+        itemId = parseInt(itemId);
+        return new Promise((resolve, reject) => {
+            this.connection.query(
+                `UPDATE items
+                 SET items.send_to_amazon = (SELECT I2.send_to_amazon FROM (SELECT if(send_to_amazon = 1, 0, 1) as send_to_amazon FROM items WHERE id = ?) as I2)
+                 WHERE items.id = ?`,
+                [itemId, itemId],
+                (err, results) => {
+                    if (err) {
+                        console.error(err);
+                        reject(err)
+                    } else {
+                        resolve(results);
+                    }
+                }
+            )
+        });
+    }
+
     setInactive(url) {
         return new Promise((resolve, reject) => {
             this.connection.query(
