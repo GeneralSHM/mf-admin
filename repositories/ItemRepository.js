@@ -118,10 +118,11 @@ class ItemRepository {
     updateItem(newData, oldData) {
         return new Promise((resolve, reject) => {
             if (newData.availability === 'out_of_stock') {
-                if (newData.price === -1 && oldData.price > 0) {
+                if (newData.price === -1 && oldData.price >= 0) {
                     newData.price = oldData.price;
                 }
             }
+
             let newPrice = newData.price != null ? newData.price.toFixed(2) : 0;
             let oldPrice = oldData.price != null ? oldData.price.toFixed(2) : 0;
 
@@ -351,7 +352,8 @@ class ItemRepository {
             this.connection.query(
                 `SELECT items.mf_name as name, 
                 items.url as url, 
-                items.amazon_name as sku, 
+                items.amazon_name as sku,
+                items.availability, 
                 brand.name as brand 
                 FROM \`items\` 
                 LEFT JOIN brand 
@@ -373,8 +375,8 @@ class ItemRepository {
         let orderStatement = sortBy == 'status' ? `items.availability ${sort}, items.last_change DESC` : `items.last_change ${sort}` ;
 
         if (IS_DEBUG || 1===1) {
-            console.log(JSON.stringify(sortBy));
-            console.log(orderStatement);
+            //console.log(JSON.stringify(sortBy));
+            //console.log(orderStatement);
         }
 
         var brandQuery = '';
@@ -412,10 +414,31 @@ class ItemRepository {
         });
     }
 
+    updateAmazonStatus(itemId) {
+        itemId = parseInt(itemId);
+        return new Promise((resolve, reject) => {
+            this.connection.query(
+                `UPDATE items
+                 SET items.send_to_amazon = (SELECT I2.send_to_amazon FROM (SELECT if(send_to_amazon = 1, 0, 1) as send_to_amazon FROM items WHERE id = ?) as I2)
+                 WHERE items.id = ?`,
+                [itemId, itemId],
+                (err, results) => {
+                    if (err) {
+                        console.error(err);
+                        reject(err)
+                    } else {
+                        resolve(results);
+                    }
+                }
+            )
+        });
+    }
+
     setInactive(url) {
         return new Promise((resolve, reject) => {
             this.connection.query(
-                `UPDATE items SET is_url_active = 0
+                `UPDATE items SET is_url_active = 0,
+                 availability = 'out_of_stock'
                  WHERE url = ?`,
                 [url],
                 (err, results) => {

@@ -10,7 +10,10 @@ class HomeView {
         this.pageCount = null;
         this.currentPage = typeof request.query.page != 'undefined' && !isNaN(parseInt(request.query.page)) && parseInt(request.query.page) >= 1 ? parseInt(request.query.page) - 1 : 0;
         this.shouldSearch = typeof request.query.search != 'undefined';
-        this.searchParam = request.query.search.trim();
+        this.searchParam = request.query.search;
+        if (this.searchParam) {
+            this.searchParam.trim();
+        }
         this.brandFilterIds = [];
         if (request.query.brand) {
             this.brandFilterIds = request.query.brand.split(',').map((brand) => parseInt(brand));
@@ -42,6 +45,7 @@ class HomeView {
                 }
                 optionsForBrands += `<option brand-id="${brand.id}" ${selected}>${brand.name}</option>`;
             }
+
             tableRows += `
                 <tr class="${item.is_url_active ? '' : 'broken-link'}">
                     <td class="img-col"><img class="circle responsive-img" src="${item.thumbnail}" alt="${item.mf_name}"></td>
@@ -65,6 +69,7 @@ class HomeView {
                     </td>
                     <td>${(new Date(item.date_added)).toLocaleString()}</td>
                     <td>${(new Date(item.last_change)).toLocaleString()}</td>
+                    <td><p class="input-field"><input item-id="${item.item_id}" class="send-to-amazon-checkbox" id="send-to-amazon-checkbox-id${item.item_id}" type="checkbox" ${item.send_to_amazon === 1 ? "checked" : ''}/><label for="send-to-amazon-checkbox-id${item.item_id}"></label></p></td>
                     <td><i class="material-icons btn-edit" data-amazon-name="${item.amazon_name}" data-amazon-price="${item.amazon_price}" data-db-id="${item.item_id}">mode_edit</i></td>
                     <td><i class="material-icons btn-delete" data-name="${item.mf_name}" data-db-id="${item.item_id}">delete</i></td>
                 </tr>
@@ -86,6 +91,7 @@ class HomeView {
                         <th data-field="brand">Brand</th>
                         <th data-field="date-added">Added on</th>
                         <th data-field="date-scraped"><span>Last change</span><div><span class="arrow-down modify"></span><span class="arrow-up modify"></span></div></th>
+                        <th data-field="remove-from-amazon"><p><input id="send-to-amazon-checkbox-all" type="checkbox"/><label for="send-to-amazon-checkbox-all">Amazon API</label></p></th>
                         <th data-field="edit"></th>
                         <th data-field="delete"></th>
                     </tr>
@@ -116,11 +122,7 @@ class HomeView {
                 </ul>`;
     }
 
-
-
     getItemPage() {
-        console.log(this.itemsPerPage);
-
         return new Promise((resolve, reject) => {
             let method = this.shouldSearch ? 'getByName' : 'getItemPage';
 
