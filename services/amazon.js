@@ -1,5 +1,6 @@
 const creads = require('../configs/amazon.api.config');
 const request = require('request');
+const axios = require('axios');
 
 class AmazonApiService{
     constructor() {
@@ -8,18 +9,7 @@ class AmazonApiService{
 
     addProduct(product) {
         const currentProduct = this.findProduct(product.MFName);
-        console.log("advam:");
-        console.log(product);
-        // if (currentProduct) {
-        //     this.changedProducts[currentProduct.index] = product;
-        // } else {
         this.changedProducts.push(product);
-
-
-        console.log('v momenta imam:');
-        console.log(this.changedProducts);
-        console.log('v momenta imam:');
-        // }
     }
 
     findProduct(mfName) {
@@ -38,34 +28,43 @@ class AmazonApiService{
         return product;
     }
 
-    sendProductsToApi(){
-
-        console.log('producti::');
-        console.log(this.changedProducts);
-        console.log('producti::');
-        const headers = {
-            'User-Agent':       'Super Agent/0.0.1',
-            'Content-Type':     'application/x-www-form-urlencoded'
-        };
-
-        const options = {
-            url: creads.API_BASE_URL,
-            method: 'POST',
-            headers: headers,
-            form: {
-                products: this.changedProducts
+    generateNewReportId() {
+        let axiosConfig = {
+            headers: {
+                'Content-Type': 'application/json;charset=UTF-8',
+                "Access-Control-Allow-Origin": "*",
             }
         };
 
-        request(options, function (error, response, body) {
-            if (!error && response.statusCode == 200) {
-                // Print out the response body
-                console.log('prati se');
-                console.log(body)
-            } else {
-                console.log('ne se prati');
+        return axios.get(creads.API_BASE_URL + 'new-report');
+    }
+
+    sendProductsToApi(){}
+
+    sendProductsToApii(items, reportId){
+        var postData = {
+            items: items,
+            reportId: reportId
+        };
+
+        let axiosConfig = {
+            headers: {
+                'Content-Type': 'application/json;charset=UTF-8',
+                "Access-Control-Allow-Origin": "*",
             }
-        })
+        };
+
+        axios.post(creads.API_BASE_URL + 'update-quantities', postData, axiosConfig)
+            .then((res) => {
+                if (res.data === false) {
+                    setTimeout(() => {
+                        this.sendProductsToApii(items, reportId);
+                    }, 600000);
+                }
+            })
+            .catch((err) => {
+                console.log("AXIOS ERROR: ", err);
+            })
     }
 }
 

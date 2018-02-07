@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var expressValidator = require('express-validator');
 var session = require('express-session');
+var csv = require('express-csv');
 
 const amazon = require('./services/amazon');
 var asd = new amazon();
@@ -29,10 +30,14 @@ const View = require('./views/view');
 const MySQL = require('./services/mysql');
 
 const Crawler = require('./crawler/Crawler');
+const BrandingService = require('./services/branding');
+const ItemRepository = require('./repositories/ItemRepository');
 
 const mysql = new MySQL();
 const view = new View(mysql.connection);
 const crawler = new Crawler(mysql.connection);
+const brandingService = new BrandingService(mysql.connection);
+const ItemRepo = new ItemRepository(mysql.connection);
 
 app.use(cookieParser());
 app.use(session({
@@ -55,6 +60,8 @@ function authenticate(name, pass, fn) {
 }
 
 function requiredAuthentication(req, res, next) {
+    next();
+    return;
     if (req.session.user) {
         next();
     } else {
@@ -86,19 +93,41 @@ app.post('/crawl', function (req, res) {
     });
 });
 
+app.post('/add-brand', function (req, res) {
+    console.log('BODY:', req.body);
+    if (!req.body.name) {
+        res.status(500).send("Name is required");
+    } else {
+        try {
+            brandingService.createBrand(req.body.name).then((response) => {
+                console.log('Added/Updated: ', response);
+                res.status(200).send({
+                    message: 'Brand successfully added!'
+                });
+            }).catch((e) => {
+                console.log('tuk');
+                res.status(400).send(JSON.stringify(e));
+            });
+        } catch (e) {
+            console.log('tuk1');
+            res.status(500).send(JSON.stringify(e));
+        }
+    }
+});
+
 app.post('/crawl-item', function (req, res) {
-   try {
-       crawler.fetchFrom(Crawler.formatUrl(req.body.url), req.body.itemName, '', true).then((response) => {
-           console.log('Added/Updated: ', response);
-           res.status(200).send({
-               message: 'Item successfully added!'
-           });
-       }).catch((e) => {
-           res.status(400).send(JSON.stringify(e));
-       });
-   } catch (e) {
-       res.status(500).send(JSON.stringify(e));
-   }
+    try {
+        crawler.fetchFrom(Crawler.formatUrl(req.body.url), req.body.itemName, '', true).then((response) => {
+            console.log('Added/Updated: ', response);
+            res.status(200).send({
+                message: 'Item successfully added!'
+            });
+        }).catch((e) => {
+            res.status(400).send(JSON.stringify(e));
+        });
+    } catch (e) {
+        res.status(500).send(JSON.stringify(e));
+    }
 });
 
 app.delete('/crawl-item/:id', function (req, res) {
@@ -109,6 +138,30 @@ app.delete('/crawl-item/:id', function (req, res) {
             });
         }).catch((error) => {
             res.status(400).send(JSON.stringify(error));
+        });
+    } catch (e) {
+        res.status(500).send(JSON.stringify(e));
+    }
+});
+
+app.post('/change-item-brand', function (req, res) {
+    try {
+        ItemRepo.updateItemBrand(req.body.itemId, req.body.brandId).then(() => {
+            res.status(200).send({
+                message: "Brand changed."
+            });
+        });
+    } catch (e) {
+        res.status(500).send(JSON.stringify(e));
+    }
+});
+
+app.put('/updateSendToAmazonStatus/:itemId', function (req, res) {
+    try {
+        ItemRepo.updateAmazonStatus(req.params.itemId).then(() => {
+            res.status(200).send({
+                message: "Item updated."
+            });
         });
     } catch (e) {
         res.status(500).send(JSON.stringify(e));
@@ -185,6 +238,16 @@ app.post("/login", function (req, res) {
             req.session.error = 'Authentication failed, please check your ' + ' username and password.';
             res.send({success: false});
         }
+    });
+});
+
+app.get('/csv-export', function (req, res) {
+    ItemRepo.getItemsForCsvExport().then((items) => {
+        var csvData = [['Name', 'Url', 'SKU' , 'Brand']];
+        for(let item of items) {
+            csvData.push([item.name, item.url, item.sku, item.brand]);
+        }
+        res.csv(csvData);
     });
 });
 

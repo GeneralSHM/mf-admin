@@ -2,6 +2,7 @@ const cheerio = require('cheerio');
 
 const HttpService = require('./HttpService');
 const ItemRepository = require('../repositories/ItemRepository');
+const BrandingService = require('../services/branding');
 const CSVLoader = require('./CSVLoader');
 const AmazonApiService = require('../services/amazon');
 
@@ -18,6 +19,7 @@ class Crawler {
         this.csvLoader = new CSVLoader();
         this.counter = 1;
         this.amazonApiService = new AmazonApiService();
+        this.brandingService = new BrandingService(connection);
 
         this.spaceCodes = [
             /\u0020+/g,
@@ -47,10 +49,13 @@ class Crawler {
     scrapeCSV(url) {
         return new Promise((resolve, reject) => {
             this.csvLoader.extractItems(url).then((items) => {
-                this.fetchFromList(items).then((failedItems) => {
-                    resolve(failedItems);
-                }).catch((error) => {
-                    reject(error);
+                // add brands before that.
+                this.brandingService.insertNonExistingBrandsByName(items).then((items) => {
+                    this.fetchFromList(items).then((failedItems) => {
+                        resolve(failedItems);
+                    }).catch((error) => {
+                        reject(error);
+                    });
                 });
             }).catch((e) => {
                 reject(e);
@@ -70,7 +75,7 @@ class Crawler {
                 setTimeout(() => {
                     item.url = Crawler.formatUrl(item.url);
 
-                    this.fetchFrom(item.url, item.MFName, item.sku).then(() => {
+                    this.fetchFrom(item.url, item.MFName, item.sku, item.brandID).then(() => {
                         if (IS_DEBUG) {
                             console.log(this.counter++ + ' Fetch from "' + item.url + '" complete!');
                         }
@@ -104,25 +109,34 @@ class Crawler {
         });
     }
 
-    fetchFrom(url, itemName, sku, isSingleItem) {
+    fetchFrom(url, itemName, sku, brand, isSingleItem, tryCount = 0) {
         if (!sku) {
             sku = '';
+        }
+        if (!brand) {
+            brand = 0;
         }
         return new Promise((resolve, reject) => {
             httpService.get(url).then((html) => {
                 let lastItems = this.getPrices(html, url, itemName, isSingleItem);
-                if (lastItems.length == 0) {
+                if (parseInt(lastItems.length) === 0) {
                     reject({
                         noMatch: true,
                         item: {
                             url: url,
                             itemName: itemName,
-                            sku: sku
+                            sku: sku,
+                            brand: brand
                         }
                     });
                 } else {
                     lastItems.forEach((item) => {
                       item.sku = sku;
+                      if (item.name === itemName) {
+                          item.brand = brand;
+                      } else {
+                          item.brand = 0;
+                      }
                     });
                     this.saveItems(lastItems).then(() => {
                         resolve(itemName);
@@ -131,12 +145,23 @@ class Crawler {
                     });
                 }
             }).catch((e) => {
-                if (e.statusCode == 301) {
-                    this.fetchFrom(e.location, itemName).then((itemName) => {
+                if (parseInt(e.statusCode) === 301) {
+                    this.fetchFrom(e.location, itemName, sku, brand, isSingleItem).then((itemName) => {
                         resolve(itemName);
                     }).catch((error) => {
                         reject(error);
                     })
+                } else if (parseInt(e.statusCode) === 404) {
+                    if (tryCount === 4) {
+                        console.error(e);
+                        reject(e);
+                    } else {
+                        this.fetchFrom(url, itemName, sku, brand, isSingleItem, (tryCount + 1)).then((itemName) => {
+                            resolve(itemName);
+                        }).catch((error) => {
+                            reject(error);
+                        });
+                    }
                 } else {
                     console.error(e);
                     reject(e);
@@ -147,14 +172,20 @@ class Crawler {
 
     fetchFromDB() {
         return new Promise((resolve, reject) => {
-            this.itemRepository.getAll().then((items) => {
-                this.fetchFromList(items).then((failedItems) => {
-                    resolve(failedItems);
-                }).catch((error) => {
-                    reject(error);
+            this.amazonApiService.generateNewReportId().then((res) => {
+                const reportId = res.data;
+                this.itemRepository.getAll().then((items) => {
+                    this.fetchFromList(items).then((failedItems) => {
+                        this.itemRepository.getItemsForCsvExport().then((items) => {
+                            this.amazonApiService.sendProductsToApii(items, reportId);
+                        });
+                        resolve(failedItems);
+                    }).catch((error) => {
+                        reject(error);
+                    });
+                }).catch((e) => {
+                    throw new Error(e);
                 });
-            }).catch((e) => {
-                throw new Error(e);
             });
         });
     }
@@ -166,6 +197,16 @@ class Crawler {
 
         let DOMElements = itemVariations.length > 0 ? itemVariations : $('var.price');
 
+        if ($('#prodoutofstock_rr > h3').length === 1) {
+            items.push({
+                name: itemName,
+                availability: 'out_of_stock',
+                url: url,
+                price: -1,
+                thumbnail: $($('[itemprop="image"]')[0]).attr('content')
+            });
+            return items;
+        }
         for (var i = 0; i < DOMElements.length; i++) {
             let parsedElement = this.parseItem($, DOMElements[i], url);
 

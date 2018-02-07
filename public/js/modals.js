@@ -26,6 +26,9 @@
     var createButton = document.querySelector('.add-item');
     createButton.addEventListener('click', onCreateClick);
 
+    var createBrandButton = document.querySelector('.add-brand');
+    createBrandButton.addEventListener('click', onCreateBrandClick);
+
     $('#add-item').modal({
             complete: function () {
                 // window.location = '/';
@@ -35,6 +38,11 @@
 
     function onCreateClick(event) {
         $('#add-item').modal('open');
+    }
+
+
+    function onCreateBrandClick(event) {
+        $('#add-brand').modal('open');
     }
 
 
@@ -53,6 +61,85 @@
         }).done(function(response) {
             Materialize.toast(response.message, TOAST_TIMEOUT, 'green lighten-1');
 
+        }).fail(function(error) {
+            Materialize.toast(error.responseText, TOAST_TIMEOUT, 'red darken-2');
+        });
+    });
+
+    $('#add-brand-btn').on('click', function () {
+        var form = {
+            name: $('#addBrandName').val()
+        };
+
+        $.ajax({
+            url: '/add-brand',
+            method: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(form)
+        }).done(function(response) {
+            Materialize.toast(response.message, TOAST_TIMEOUT, 'green lighten-1');
+
+            setTimeout(function () {
+                window.location = '';
+            }, 1000);
+        }).fail(function(error) {
+            Materialize.toast(error.responseText, TOAST_TIMEOUT, 'red darken-2');
+        });
+    });
+
+    $('.send-to-amazon-checkbox').on('change', function () {
+        var itemId = $(this).attr('item-id');
+
+        updateItemSendToAmazon(itemId);
+    });
+
+    $('#send-to-amazon-checkbox-all').on('change', function () {
+        $.each($('.send-to-amazon-checkbox'), function (index, el) {
+            var itemId = $(el).attr('item-id');
+            var checked = $(el).prop('checked');
+            if(checked) {
+                $(el).removeAttr('checked');
+            } else {
+                $(el).prop('checked', 'checked');
+            }
+
+            updateItemSendToAmazon(itemId);
+        });
+    });
+
+    function updateItemSendToAmazon(itemId) {
+        $.ajax({
+            url: '/updateSendToAmazonStatus/' + itemId,
+            method: 'PUT',
+            contentType: 'application/json',
+            dataType: 'json'
+        }).done(function(response) {
+            Materialize.toast(response.message, TOAST_TIMEOUT, 'green lighten-1');
+        }).fail(function(error) {
+            Materialize.toast(error.responseText, TOAST_TIMEOUT, 'red darken-2');
+        });
+    }
+
+    $('.item-brand-select').on('change', function () {
+        if (this.selectedIndex === undefined) {
+            return;
+        }
+        var brandId = $(this.options[this.selectedIndex]).attr('brand-id');
+        var itemId = $(this).attr('item-id');
+        var data = {
+            itemId,
+            brandId
+        };
+
+        $.ajax({
+            url: '/change-item-brand',
+            method: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(data)
+        }).done(function(response) {
+            Materialize.toast(response.message, TOAST_TIMEOUT, 'green lighten-1');
         }).fail(function(error) {
             Materialize.toast(error.responseText, TOAST_TIMEOUT, 'red darken-2');
         });
