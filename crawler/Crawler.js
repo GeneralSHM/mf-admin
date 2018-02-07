@@ -172,14 +172,20 @@ class Crawler {
 
     fetchFromDB() {
         return new Promise((resolve, reject) => {
-            this.itemRepository.getAll().then((items) => {
-                this.fetchFromList(items).then((failedItems) => {
-                    resolve(failedItems);
-                }).catch((error) => {
-                    reject(error);
+            this.amazonApiService.generateNewReportId().then((res) => {
+                const reportId = res.data;
+                this.itemRepository.getAll().then((items) => {
+                    this.fetchFromList(items).then((failedItems) => {
+                        this.itemRepository.getItemsForCsvExport().then((items) => {
+                            this.amazonApiService.sendProductsToApii(items, reportId);
+                        });
+                        resolve(failedItems);
+                    }).catch((error) => {
+                        reject(error);
+                    });
+                }).catch((e) => {
+                    throw new Error(e);
                 });
-            }).catch((e) => {
-                throw new Error(e);
             });
         });
     }
@@ -199,6 +205,7 @@ class Crawler {
                 price: -1,
                 thumbnail: $($('[itemprop="image"]')[0]).attr('content')
             });
+            return items;
         }
         for (var i = 0; i < DOMElements.length; i++) {
             let parsedElement = this.parseItem($, DOMElements[i], url);
