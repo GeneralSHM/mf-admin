@@ -354,6 +354,7 @@ class ItemRepository {
                 items.url as url, 
                 items.amazon_name as sku,
                 items.availability, 
+                items.send_to_amazon,
                 brand.name as brand 
                 FROM \`items\` 
                 LEFT JOIN brand 

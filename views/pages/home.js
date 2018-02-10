@@ -12,7 +12,7 @@ class HomeView {
         this.shouldSearch = typeof request.query.search != 'undefined';
         this.searchParam = request.query.search;
         if (this.searchParam) {
-            this.searchParam.trim();
+           this.searchParam =  this.searchParam.trim();
         }
         this.brandFilterIds = [];
         if (request.query.brand) {

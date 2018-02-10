@@ -9,8 +9,8 @@ var session = require('express-session');
 var csv = require('express-csv');
 
 const amazon = require('./services/amazon');
-var asd = new amazon();
-asd.sendProductsToApi();
+//var asd = new amazon();
+//asd.sendProductsToApi();
 const multer  = require('multer');
 const storage = multer.diskStorage({
     destination: 'uploads/',
@@ -60,8 +60,8 @@ function authenticate(name, pass, fn) {
 }
 
 function requiredAuthentication(req, res, next) {
-    next();
-    return;
+ //   next();
+   // return;
     if (req.session.user) {
         next();
     } else {
@@ -78,6 +78,7 @@ app.get('/', requiredAuthentication, function (req, res) {
     view.render('home', req).then((data) => {
         res.send(data);
     }).catch((e) => {
+	console.log(e);
         res.send(e);
     });
 });
