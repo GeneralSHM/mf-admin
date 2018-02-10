@@ -29,7 +29,7 @@ class BrandRepository {
     getAllBrands() {
         return new Promise((resolve, reject) => {
             this.connection.query(
-                `SELECT * FROM brand WHERE active = 1`,
+                `SELECT * FROM brand WHERE active = 1 ORDER BY name ASC`,
                 (err, results) => {
                     if (err) {
                         console.error(err);
