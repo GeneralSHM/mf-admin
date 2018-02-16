@@ -67,8 +67,14 @@
     });
 
     $('#add-brand-btn').on('click', function () {
+        var brandName = $('#addBrandName').val();
+        if (brandName == '') {
+            Materialize.toast('You must add a name', TOAST_TIMEOUT, 'red darken-2');
+            return;
+        }
+
         var form = {
-            name: $('#addBrandName').val()
+            name: brandName
         };
 
         $.ajax({
