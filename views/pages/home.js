@@ -147,9 +147,14 @@ class HomeView {
 
     fillTemplate(table) {
         var optionsForBrands = '';
+        var optionsForSelectedBrands = '';
+        var selected = 'selected';
         for (let brand of this.brands) {
-            let selected = this.brandFilterIds.indexOf(brand.id) !== -1 ? 'selected' : '';
-            optionsForBrands += `<option value="${brand.id}" ${selected}>${brand.name}</option>`;
+            if (this.brandFilterIds.indexOf(brand.id) !== -1) {
+                optionsForSelectedBrands += `<option value="${brand.id}" ${selected}>${brand.name}</option>`;
+            } else {
+                optionsForBrands += `<option value="${brand.id}">${brand.name}</option>`;
+            }
         }
         return `
             <div class="row">
@@ -173,6 +178,7 @@ class HomeView {
                         <select class="browser-default" multiple id="brand-filter-select">
                           <option value="" disabled selected>Choose your option</option>
                           <option value="0" ${this.brandFilterIds.indexOf(0) !== -1 ? 'selected' : ''}>No brand</option>
+                          ${optionsForSelectedBrands}
                           ${optionsForBrands}
                         </select>
                     </div>
