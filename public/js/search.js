@@ -99,18 +99,19 @@
         }
     });
 
-    $('#brand-filter-select').on('change', function () {
-        var selectedBrands = $(this).val();
+    $("#filter-by-brand-button").on('click', function () {
+        var selectedBrands = $('select.SumoUnder')[0].sumo.getSelStr().substr(1);
+
         var currentURL = window.location.href;
         var hasParams = currentURL.indexOf('?') != -1;
         var hasBrand = currentURL.indexOf('brand') != -1;
 
         if (hasBrand) {
-            window.location = currentURL.replace(/brand=[\d*,]*/g, 'brand=' + selectedBrands.join(','));
+            window.location = currentURL.replace(/brand=[\d*,]*/g, 'brand=' + selectedBrands);
         } else if (hasParams) {
-            window.location = currentURL + "&brand=" + selectedBrands.join(',');
+            window.location = currentURL + "&brand=" + selectedBrands;
         } else {
-            window.location = currentURL + "?brand=" + selectedBrands.join(',');
+            window.location = currentURL + "?brand=" + selectedBrands;
         }
     });
 
@@ -135,5 +136,14 @@
             });
 
         }
+    });
+
+    $('select').on('contentChanged', function() {
+        // re-initialize (update)
+        $(this).material_select();
+    });
+
+    $( document ).ready(function() {
+        $('#brand-filter-select').SumoSelect({search: true, searchText: 'Enter here.'});
     });
 })();
