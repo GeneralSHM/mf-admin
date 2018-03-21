@@ -90,3 +90,14 @@ nav {
 .broken-link * {
     text-decoration: line-through;
 }
+
+.optWrapper label {
+    color: rgba(0,0,0,0.87) !important;
+    position: static !important;
+}
+
+.SelectBox label {
+    left: unset !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+}

@@ -12,7 +12,7 @@ class HomeView {
         this.shouldSearch = typeof request.query.search != 'undefined';
         this.searchParam = request.query.search;
         if (this.searchParam) {
-            this.searchParam.trim();
+            this.searchParam = this.searchParam.trim();
         }
         this.brandFilterIds = [];
         if (request.query.brand) {
@@ -129,7 +129,7 @@ class HomeView {
             this.brandRepo.getAllBrands().then((brands) => {
                 this.brands = brands;
                 this.itemRepository[method](this.currentPage, this.itemsPerPage, this.searchParam, this.sortOrder, this.sortBy, this.brandFilterIds).then((items) => {
-                    resolve( `
+                    resolve(`
                     ${this.getTable(items, brands)}
                     ${this.getPagination()}
                     <script>
@@ -147,9 +147,14 @@ class HomeView {
 
     fillTemplate(table) {
         var optionsForBrands = '';
-        for(let brand of this.brands) {
-            let selected = this.brandFilterIds.indexOf(brand.id) !== -1 ? 'selected' : '';
-            optionsForBrands += `<option value="${brand.id}" ${selected}>${brand.name}</option>`;
+        var optionsForSelectedBrands = '';
+        var selected = 'selected';
+        for (let brand of this.brands) {
+            if (this.brandFilterIds.indexOf(brand.id) !== -1) {
+                optionsForSelectedBrands += `<option value="${brand.id}" ${selected}>${brand.name}</option>`;
+            } else {
+                optionsForBrands += `<option value="${brand.id}">${brand.name}</option>`;
+            }
         }
         return `
             <div class="row">
@@ -169,12 +174,15 @@ class HomeView {
                     <label>Items per page</label>
                 </div>
                 <div class="input-field col s4">
-                    <select multiple id="brand-filter-select">
-                      <option value="" disabled selected>Choose your option</option>
-                      <option value="0" ${this.brandFilterIds.indexOf(0) !== -1 ? 'selected' : ''}>No brand</option>
-                      ${optionsForBrands}
-                    </select>
-                    <label>Materialize Multiple Select</label>
+                    <div class="row">
+                        <select class="browser-default" multiple id="brand-filter-select">
+                          <option value="" disabled selected>Choose your option</option>
+                          <option value="0" ${this.brandFilterIds.indexOf(0) !== -1 ? 'selected' : ''}>No brand</option>
+                          ${optionsForSelectedBrands}
+                          ${optionsForBrands}
+                        </select>
+                    </div>
+                    <div class="row input-field"><a id="filter-by-brand-button" class="waves-effect waves-light btn">Filter</a></div>
                 </div>
             </div>
             ${table}

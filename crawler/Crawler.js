@@ -163,8 +163,20 @@ class Crawler {
                         });
                     }
                 } else {
-                    console.error(e);
-                    reject(e);
+		    if (tryCount === 2) {
+			console.error(e);
+			reject(e);			
+		    } else 
+    		    if (e.message == 'Protocol "https:" not supported. Expected "http:"') {
+			url = url.replace('https', 'http');
+			this.fetchFrom(url, itemName, sku, brand, isSingleItem, (tryCount + 1)).then((itemName) => {
+                            resolve(itemName);
+                        }).catch((error) => {
+                            reject(error);
+                        });
+		    }
+                 //   console.error(e);
+                    //reject(e);
                 }
             });
         });

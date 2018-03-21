@@ -7,6 +7,7 @@ module.exports = `
     <!-- JS -->
     <script src="/js/search.js"></script>
     <script src="/js/modals.js"></script>
+    <script src="/js/jquery.sumoselect.min.js"></script>
     <script>
     (function($) {
         $(function() {
