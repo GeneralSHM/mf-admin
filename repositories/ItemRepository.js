@@ -328,6 +328,12 @@ class ItemRepository {
         let SQLQuery = shouldSearch ? `
                  SELECT COUNT(id)
                  FROM items
+                 LEFT JOIN (
+                    SELECT p1.*
+                    FROM item_prices p1 LEFT JOIN item_prices p2
+                    ON (p1.item_id = p2.item_id AND p1.id < p2.id)
+                    WHERE p2.item_id IS NULL
+                 ) prices ON items.id = prices.item_id
                  WHERE
                  (
                     mf_name = ${searchString}
@@ -339,6 +345,12 @@ class ItemRepository {
                  `
             : `SELECT COUNT(id)
                  FROM items
+                 LEFT JOIN (
+                    SELECT p1.*
+                    FROM item_prices p1 LEFT JOIN item_prices p2
+                    ON (p1.item_id = p2.item_id AND p1.id < p2.id)
+                    WHERE p2.item_id IS NULL
+                 ) prices ON items.id = prices.item_id
                  ${brandQuery}
                  ${priceQuery}
                 `;
