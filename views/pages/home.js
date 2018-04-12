@@ -212,7 +212,7 @@ class HomeView {
 
     compile() {
         return new Promise((resolve, reject) => {
-            this.itemRepository.getItemPageCount(this.itemsPerPage, this.searchParam, this.brandFilterIds).then((count) => {
+            this.itemRepository.getItemPageCount(this.itemsPerPage, this.searchParam, this.brandFilterIds, this.priceFrom, this.priceTo).then((count) => {
                 this.pageCount = count;
                 this.getItemPage().then((table) => {
                     resolve(this.fillTemplate(table));

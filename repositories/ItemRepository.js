@@ -290,7 +290,7 @@ class ItemRepository {
         });
     }
 
-    getItemPageCount(itemsPerPage, query, brandIds) {
+    getItemPageCount(itemsPerPage, query, brandIds, priceFrom, priceTo) {
         try {
             var escapedQuery = query.replace(/[+\-><\(\)~*\"@]+/g, ' ').trim();
 
@@ -316,6 +316,15 @@ class ItemRepository {
             brandQuery += ') ';
         }
 
+        var priceQuery = '';
+        if (priceFrom && priceTo) {
+            if (brandQuery || shouldSearch) {
+                priceQuery = 'AND prices.price BETWEEN ' + priceFrom + ' AND ' + priceTo;
+            } else {
+                priceQuery = 'WHERE prices.price BETWEEN ' + priceFrom + ' AND ' + priceTo + ' ';
+            }
+        }
+
         let SQLQuery = shouldSearch ? `
                  SELECT COUNT(id)
                  FROM items
@@ -326,10 +335,12 @@ class ItemRepository {
                     amazon_name = ${searchString}
                  )
                  ${brandQuery}
+                 ${priceQuery}
                  `
             : `SELECT COUNT(id)
                  FROM items
                  ${brandQuery}
+                 ${priceQuery}
                 `;
 
         return new Promise((resolve, reject) => {
