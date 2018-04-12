@@ -326,7 +326,7 @@ class ItemRepository {
         }
 
         let SQLQuery = shouldSearch ? `
-                 SELECT COUNT(id)
+                 SELECT COUNT(items.id)
                  FROM items
                  LEFT JOIN (
                     SELECT p1.*
@@ -343,7 +343,7 @@ class ItemRepository {
                  ${brandQuery}
                  ${priceQuery}
                  `
-            : `SELECT COUNT(id)
+            : `SELECT COUNT(items.id)
                  FROM items
                  LEFT JOIN (
                     SELECT p1.*
