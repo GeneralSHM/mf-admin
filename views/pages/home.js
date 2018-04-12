@@ -19,6 +19,14 @@ class HomeView {
             this.brandFilterIds = request.query.brand.split(',').map((brand) => parseInt(brand));
         }
 
+        this.priceFrom = null;
+        this.priceTo = null;
+        if (request.query.priceFrom) {
+            this.priceFrom = request.query.priceFrom;
+        }
+        if (request.query.priceTo) {
+            this.priceTo = request.query.priceTo;
+        }
         this.brandService = new BrandService(connection);
         this.brands = null;
 
@@ -128,7 +136,7 @@ class HomeView {
 
             this.brandRepo.getAllBrands().then((brands) => {
                 this.brands = brands;
-                this.itemRepository[method](this.currentPage, this.itemsPerPage, this.searchParam, this.sortOrder, this.sortBy, this.brandFilterIds).then((items) => {
+                this.itemRepository[method](this.currentPage, this.itemsPerPage, this.searchParam, this.sortOrder, this.sortBy, this.brandFilterIds, this.priceFrom, this.priceTo).then((items) => {
                     resolve(`
                     ${this.getTable(items, brands)}
                     ${this.getPagination()}
@@ -183,6 +191,19 @@ class HomeView {
                         </select>
                     </div>
                     <div class="row input-field"><a id="filter-by-brand-button" class="waves-effect waves-light btn">Filter</a></div>
+                </div>
+                <div class="input-field col s4">
+                    <div class="row">
+                        <div class="input-field col s6">
+                            <input id="priceFrom" type="number" required>
+                            <label for="priceFrom">From</label>
+                        </div>
+                        <div class="input-field col s6">
+                            <input id="priceTo" type="number" required>
+                            <label for="priceTo">To</label>
+                        </div>
+                    </div>
+                    <div class="row input-field"><a id="filter-by-price-button" class="waves-effect waves-light btn">Filter</a></div>
                 </div>
             </div>
             ${table}

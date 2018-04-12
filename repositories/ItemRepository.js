@@ -372,7 +372,7 @@ class ItemRepository {
         });
     }
 
-    getItemPage(page, itemsPerPage, query, sort, sortBy, brandIds) {
+    getItemPage(page, itemsPerPage, query, sort, sortBy, brandIds, priceFrom, priceTo) {
         let orderStatement = sortBy == 'status' ? `items.availability ${sort}, items.last_change DESC` : `items.last_change ${sort}` ;
 
         if (IS_DEBUG || 1===1) {
@@ -387,6 +387,15 @@ class ItemRepository {
             brandQuery += ') ';
         }
 
+        var priceQuery = '';
+        if (priceFrom && priceTo) {
+            if (brandQuery) {
+                priceQuery = 'AND prices.price BETWEEN ' + priceFrom + ' AND ' + priceTo;
+            } else {
+                priceQuery = 'WHERE prices.price BETWEEN ' + priceFrom + ' AND ' + priceTo + ' ';
+            }
+        }
+
         return new Promise((resolve, reject) => {
             this.connection.query(
                 `SELECT * FROM items
@@ -397,6 +406,7 @@ class ItemRepository {
                     WHERE p2.item_id IS NULL
                  ) prices ON items.id = prices.item_id
                  ${brandQuery}
+                 ${priceQuery}
                  ORDER BY ${orderStatement}
                  LIMIT ?, ?
                 `, [
@@ -472,7 +482,7 @@ class ItemRepository {
         });
     }
 
-    getByName(page, itemsPerPage, query, order, orderBy, brandIds) {
+    getByName(page, itemsPerPage, query, order, orderBy, brandIds, priceFrom, priceTo) {
         try {
             var escapedQuery = query.replace(/[+\-><\(\)~*\"@]+/g, ' ').trim();
 
@@ -499,6 +509,15 @@ class ItemRepository {
             brandQuery += ') ';
         }
 
+        var priceQuery = '';
+        if (priceFrom && priceTo) {
+            if (shouldSearch || brandQuery) {
+                priceQuery = 'AND prices.price BETWEEN ' + priceFrom + ' AND ' + priceTo;
+            } else {
+                priceQuery = 'WHERE prices.price BETWEEN ' + priceFrom + ' AND ' + priceTo + ' ';
+            }
+        }
+
         query = '%' + query + '%';
         let searchString = this.connection.escape(query);
 
@@ -517,6 +536,7 @@ class ItemRepository {
                         amazon_name LIKE ${searchString}
                     )
                     ${brandQuery}
+                    ${priceQuery}
                  ORDER BY ${orderStatement}
                  LIMIT ?, ?
                 `
@@ -524,6 +544,7 @@ class ItemRepository {
                  FROM items
                  LEFT JOIN (SELECT item_id, diff, price, MAX(date) max_date FROM item_prices GROUP BY item_id) prices ON items.id = prices.item_id
                  ${brandQuery}
+                 ${priceQuery}
                  ORDER BY ${orderStatement}
                  LIMIT ?, ?
                 `;

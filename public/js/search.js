@@ -115,6 +115,23 @@
         }
     });
 
+    $("#filter-by-price-button").on('click', function () {
+        var priceFrom = $('#priceFrom').val();
+        var priceTo = $('#priceTo').val();
+
+        var currentURL = window.location.href;
+        var hasParams = currentURL.indexOf('?') != -1;
+        var hasPrice = currentURL.indexOf('priceFrom=') != -1;
+
+        if (hasPrice) {
+            window.location = currentURL.replace(/priceFrom=.*\&afr/g, 'priceFrom=' + priceFrom + '&priceTo=' + priceTo + '&afr');
+        } else if (hasParams) {
+            window.location = currentURL + '&priceFrom=' + priceFrom + '&priceTo=' + priceTo + '&afr';
+        } else {
+            window.location = currentURL + '?priceFrom=' + priceFrom + '&priceTo=' + priceTo + '&afr';
+        }
+    });
+
     $('.btn-delete').on('click', function () {
         var isConfirmed = window.confirm('Are you sure you want to delete ' + $(this).attr('data-name') + ' ?');
 
