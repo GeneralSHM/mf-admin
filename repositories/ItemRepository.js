@@ -334,12 +334,6 @@ class ItemRepository {
                     ON (p1.item_id = p2.item_id AND p1.id < p2.id)
                     WHERE p2.item_id IS NULL
                  ) prices ON items.id = prices.item_id
-                 WHERE
-                 (
-                    mf_name = ${searchString}
-                 OR
-                    amazon_name = ${searchString}
-                 )
                  ${brandQuery}
                  ${priceQuery}
                  `
@@ -363,7 +357,7 @@ class ItemRepository {
                         console.error(err);
                         reject(err);
                     } else {
-                        resolve(Math.ceil(count[0]['COUNT(id)'] / itemsPerPage));
+                        resolve(Math.ceil(count[0]['COUNT(items.id)'] / itemsPerPage));
                     }
                 }
             )
