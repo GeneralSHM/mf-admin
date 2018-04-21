@@ -145,7 +145,7 @@ class Crawler {
                     });
                 }
             }).catch((e) => {
-                if (parseInt(e.statusCode) === 301) {
+	       if (parseInt(e.statusCode) === 301) {
                     if (tryCount === 3) {
                         console.error(e);
                         reject(e);
