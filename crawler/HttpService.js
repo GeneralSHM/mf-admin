@@ -1,4 +1,5 @@
 const http = require('http');
+const https = require('https');
 const Promise = require('bluebird');
 
 let requestHandler = (res, resolve, reject) => {
@@ -39,11 +40,20 @@ class HttpService {
                 return false;
             }
 
-            http.get(url, (res) => {
-                requestHandler(res, resolve, reject);
-            }).on('error', (e) => {
-                reject(e);
-            });
+            let isHttp = url.indexOf('https') === -1;
+            if (isHttp) {
+                http.get(url, (res) => {
+                    requestHandler(res, resolve, reject);
+                }).on('error', (e) => {
+                    reject(e);
+                });
+            } else {
+                https.get(url, (res) => {
+                    requestHandler(res, resolve, reject);
+                }).on('error', (e) => {
+                    reject(e);
+                });
+            }
         });
     }
 }
