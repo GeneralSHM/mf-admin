@@ -34,26 +34,46 @@ let requestHandler = (res, resolve, reject) => {
 
 class HttpService {
     get(url) {
+        const urlForParse = 'http://212.237.24.65:8080/get-data';
         return new Promise((resolve, reject) => {
             if (!url.includes('musiciansfriend')) {
                 reject('Not MF url!');
                 return false;
             }
 
-            let isHttp = url.indexOf('https') === -1;
-            if (isHttp) {
-                http.get(url, (res) => {
-                    requestHandler(res, resolve, reject);
-                }).on('error', (e) => {
-                    reject(e);
-                });
-            } else {
-                https.get(url, (res) => {
-                    requestHandler(res, resolve, reject);
-                }).on('error', (e) => {
-                    reject(e);
-                });
-            }
+            var options = {
+                "method": "POST",
+                "hostname": "212.237.24.65",
+                "port": "8080",
+                "path": "/get-data",
+                "headers": {
+                    "content-type": "application/json"
+                }
+            };
+
+            var req = http.request(options, function (res) {
+                requestHandler(res, resolve, reject);
+            }).on('error', (e) => {
+                reject(e);
+            });
+
+            req.write(JSON.stringify({ urls: [ url ] }));
+            req.end();
+
+            // let isHttp = url.indexOf('https') === -1;
+            // if (isHttp) {
+            //     http.get(url, (res) => {
+            //         requestHandler(res, resolve, reject);
+            //     }).on('error', (e) => {
+            //         reject(e);
+            //     });
+            // } else {
+            //     https.get(url, (res) => {
+            //         requestHandler(res, resolve, reject);
+            //     }).on('error', (e) => {
+            //         reject(e);
+            //     });
+            // }
         });
     }
 }
