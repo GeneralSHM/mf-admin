@@ -117,8 +117,10 @@ class Crawler {
             brand = 0;
         }
         return new Promise((resolve, reject) => {
-            httpService.get(url).then((html) => {
-                let lastItems = this.getPrices(html, url, itemName, isSingleItem);
+            httpService.get(url).then((lastItems) => {
+                lastItems = JSON.parse(lastItems);
+
+                console.log(lastItems);
                 if (parseInt(lastItems.length) === 0) {
                     reject({
                         noMatch: true,
@@ -130,14 +132,19 @@ class Crawler {
                         }
                     });
                 } else {
-                    lastItems.forEach((item) => {
-                      item.sku = sku;
-                      if (item.name === itemName) {
-                          item.brand = brand;
-                      } else {
-                          item.brand = 0;
-                      }
-                    });
+                    for (let i = 0; i < lastItems.length; i++) {
+                        lastItems[i].sku = sku;
+                        if (lastItems[i].price === '') {
+                            lastItems[i].price = 0;
+                        }
+                        if (lastItems[i].name === itemName) {
+                            lastItems[i].brand = brand;
+                        } else {
+                            lastItems[i].brand = 0;
+                        }
+                    }
+
+                    console.log(lastItems);
                     this.saveItems(lastItems).then(() => {
                         resolve(itemName);
                     }).catch((error) => {
@@ -145,6 +152,9 @@ class Crawler {
                     });
                 }
             }).catch((e) => {
+                console.log('tozi console.log');
+                console.log(e);
+                console.log('tozi console.log');
                 if (parseInt(e.statusCode) === 301) {
                     if (tryCount === 3) {
                         console.error(e);
